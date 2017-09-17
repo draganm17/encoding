@@ -1,4 +1,5 @@
 #include <array>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <typeindex>
@@ -234,8 +235,11 @@ namespace {
                test_encoding_traits_conversions<Encoding>();
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
-    bool test_encode_1_pointer_iterator()
+    template <typename SrcEncoding, 
+              typename DstEncoding,
+              typename... Args
+    >
+    bool do_test_encode(Args&&... args)
     {
     #ifdef _WIN32
         std::locale loc = std::locale("ru-RU");
@@ -243,44 +247,7 @@ namespace {
         std::locale loc = std::locale();
     #endif
         std::basic_string<encoding_traits<DstEncoding>::char_type> result;
-
-        auto *src = get_encoded_string(SrcEncoding());
-        auto it = encode<SrcEncoding, DstEncoding>(src, std::back_inserter(result), loc);
-
-        return //it     == result.end() &&
-               result == get_encoded_string(DstEncoding());
-    }
-
-    template <typename SrcEncoding, typename DstEncoding>
-    bool test_encode_1_container_iterator()
-    {
-    #ifdef _WIN32
-        std::locale loc = std::locale("ru-RU");
-    #else
-        std::locale loc = std::locale();
-    #endif
-        std::basic_string<encoding_traits<SrcEncoding>::char_type> src(
-            std::begin(get_encoded_string(SrcEncoding())),
-            std::end(get_encoded_string(SrcEncoding())));
-
-        std::basic_string<encoding_traits<DstEncoding>::char_type> result;
-        auto it = encode<SrcEncoding, DstEncoding>(src.begin(), std::back_inserter(result), loc);
-
-        return //it     == result.end() &&
-               result == get_encoded_string(DstEncoding());
-    }
-
-    template <typename SrcEncoding, typename DstEncoding>
-    bool test_encode_1_array_range()
-    {
-    #ifdef _WIN32
-        std::locale loc = std::locale("ru-RU");
-    #else
-        std::locale loc = std::locale();
-    #endif
-        std::basic_string<encoding_traits<DstEncoding>::char_type> result;
-
-        auto it = encode<SrcEncoding, DstEncoding>(get_encoded_string(SrcEncoding()),
+        auto it = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)..., 
                                                    std::back_inserter(result), loc);
 
         return //it     == result.end() &&
@@ -288,48 +255,94 @@ namespace {
     }
 
     template <typename SrcEncoding, typename DstEncoding>
-    bool test_encode_1_container_range()
+    bool test_encode_1_input_iterator()
     {
-    #ifdef _WIN32
-        std::locale loc = std::locale("ru-RU");
-    #else
-        std::locale loc = std::locale();
-    #endif
-        std::basic_string<encoding_traits<SrcEncoding>::char_type> src;
-        std::basic_string<encoding_traits<DstEncoding>::char_type> result;
+        using InCharT = encoding_traits<SrcEncoding>::char_type;
+        std::basic_stringstream<InCharT> src;
 
-        src = get_encoded_string(SrcEncoding());
-        auto it = encode<SrcEncoding, DstEncoding>(src, std::back_inserter(result), loc);
+        std::noskipws(src);
+        src.write(get_encoded_string(SrcEncoding()), sizeof(get_encoded_string(SrcEncoding())));
+        return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src));
+    }
 
-        return //it     == result.end() &&
-               result == get_encoded_string(DstEncoding());
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_forward_iterator()
+    {
+        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(src);
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_contiguous_iterator()
+    {
+        auto* src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(src);
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_input_range()
+    {
+        // TODO: ...
+        return true;
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_forward_range()
+    {
+        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(src);
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_contiguous_range()
+    {
+        auto& src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(src);
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1()
     {
-        return test_encode_1_pointer_iterator<SrcEncoding, DstEncoding>()   &&
-               test_encode_1_container_iterator<SrcEncoding, DstEncoding>() &&
-               test_encode_1_array_range<SrcEncoding, DstEncoding>()        &&
-               test_encode_1_container_range<SrcEncoding, DstEncoding>();
+        return test_encode_1_input_iterator<SrcEncoding, DstEncoding>()      &&
+               test_encode_1_forward_iterator<SrcEncoding, DstEncoding>()    &&
+               test_encode_1_contiguous_iterator<SrcEncoding, DstEncoding>() &&
+               test_encode_1_input_range<SrcEncoding, DstEncoding>()         &&
+               test_encode_1_forward_range<SrcEncoding, DstEncoding>()       &&
+               test_encode_1_contiguous_range<SrcEncoding, DstEncoding>();
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_3_input_iterator()
+    {
+        using InCharT = encoding_traits<SrcEncoding>::char_type;
+        std::basic_stringstream<InCharT> src;
+
+        std::noskipws(src);
+        src << get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src),
+                                                          std::istream_iterator<InCharT, InCharT>());
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_3_forward_iterator()
+    {
+        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(src), std::end(src));
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_3_contiguous_iterator()
+    {
+        auto& src = get_encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(src), std::end(src) - 1);
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_3()
     {
-    #ifdef _WIN32
-        std::locale loc = std::locale("ru-RU");
-    #elif
-        std::locale loc = std::locale();
-    #endif
-        std::basic_string<encoding_traits<DstEncoding>::char_type> result;
-
-        auto it = encode<SrcEncoding, DstEncoding>(std::begin(get_encoded_string(SrcEncoding())),
-                                                   std::end(get_encoded_string(SrcEncoding())) - 1,
-                                                   std::back_inserter(result), loc);
-
-        return //it     == result.end() &&
-               result == get_encoded_string(DstEncoding());
+        return test_encode_3_input_iterator<SrcEncoding, DstEncoding>()   &&
+               test_encode_3_forward_iterator<SrcEncoding, DstEncoding>() &&
+               test_encode_3_contiguous_iterator<SrcEncoding, DstEncoding>();
     }
 }
 
@@ -415,12 +428,12 @@ TEST(DENC, EncodingTraits)
 TEST(DENC, Encode_1)
 {
     EXPECT_TRUE((test_encode_1<utf8, utf8>()));
-    //EXPECT_TRUE((test_encode_1<utf8, utf16>()));
+    EXPECT_TRUE((test_encode_1<utf8, utf16>()));
     //EXPECT_TRUE((test_encode_1<utf8, utf32>()));
-    //EXPECT_TRUE((test_encode_1<utf8, native_narrow>()));
+    EXPECT_TRUE((test_encode_1<utf8, native_narrow>()));
     EXPECT_TRUE((test_encode_1<utf8, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_1<utf16, utf8>()));
+    EXPECT_TRUE((test_encode_1<utf16, utf8>()));
     EXPECT_TRUE((test_encode_1<utf16, utf16>()));
     //EXPECT_TRUE((test_encode_1<utf16, utf32>()));
     EXPECT_TRUE((test_encode_1<utf16, native_narrow>()));
@@ -448,12 +461,12 @@ TEST(DENC, Encode_1)
 TEST(DENC, Encode_3)
 {
     EXPECT_TRUE((test_encode_3<utf8, utf8>()));
-    //EXPECT_TRUE((test_encode_3<utf8, utf16>()));
+    EXPECT_TRUE((test_encode_3<utf8, utf16>()));
     //EXPECT_TRUE((test_encode_3<utf8, utf32>()));
-    //EXPECT_TRUE((test_encode_3<utf8, native_narrow>()));
-    //EXPECT_TRUE((test_encode_3<utf8, native_wide>()));
+    EXPECT_TRUE((test_encode_3<utf8, native_narrow>()));
+    EXPECT_TRUE((test_encode_3<utf8, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_3<utf16, utf8>()));
+    EXPECT_TRUE((test_encode_3<utf16, utf8>()));
     EXPECT_TRUE((test_encode_3<utf16, utf16>()));
     //EXPECT_TRUE((test_encode_3<utf16, utf32>()));
     EXPECT_TRUE((test_encode_3<utf16, native_narrow>()));
