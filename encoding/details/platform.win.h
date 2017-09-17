@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <codecvt>
 #include <locale>
 
 #include <encoding/details/codecvt.h>
@@ -75,24 +76,21 @@ namespace platform {
     inline OutputIt from_native(utf8, InputIt first, InputIt last, 
                                 OutputIt result, const std::locale& loc)
     {
-        //std::u16string tmp;
-        //from_native(utf16(), tmp.data(), tmp.data() + tmp.size(), loc);
-        // TODO: ...
-        throw 0;
+        std::u16string tmp;
+        from_native(utf16(), first, last, std::back_inserter(tmp), loc);
+        
+        auto* cvt = new std::codecvt_utf8_utf16<char16_t>;
+        return codecvt_out(tmp.data(), tmp.data() + tmp.size(), result, *cvt);
     }
 
     template <typename InputIt, typename OutputIt>
     inline OutputIt to_native(utf8, InputIt first, InputIt last,
                               OutputIt result, const std::locale& loc)
     {
-        // TODO: ...
-        throw 0;
-
-        //std::u16string tmp;
-        
-        //std::wstring_convert<>
-
-        //return to_native(utf16(), tmp.data(), tmp.data() + tmp.size(), loc);
+        std::u16string tmp;
+        auto* cvt = new std::codecvt_utf8_utf16<char16_t>; // TODO: ...
+        codecvt_in(first, last, std::back_inserter(tmp), *cvt);
+        return to_native(utf16(), tmp.data(), tmp.data() + tmp.size(), result, loc);
     }
 
     template <typename InputIt, typename OutputIt>
