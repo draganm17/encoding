@@ -34,33 +34,37 @@ namespace details {
     template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
     inline OutputIt do_encode(Source&& src, OutputIt result, const std::locale& loc)
     {
-        if constexpr(is_range<std::remove_reference_t<Source>>::value) 
+        using SourceT = std::decay_t<Source>;
+        if constexpr(is_range<SourceT>::value)
         // 'Source' is a range.
         {
-            if constexpr(is_contiguous_range<std::remove_reference_t<Source>>::value)
-            // 'Source' is a contiguous range.
+            if constexpr(is_contiguous_range<SourceT>::value)
+            // 'Source' is an contiguous range.
             {
                 using std::data; using std::size;
                 return do_encode<SrcEnc, DstEnc>(data(src), data(src) + size(src), result, loc);
             } else
-            // 'Source' is not a contiguous range.
+            // 'Source' is at least an input range.
             {
                 using std::begin; using std::end;
                 return do_encode<SrcEnc, DstEnc>(begin(src), end(src), result, loc);
             }
         } else
-        // 'Source' is not a range. Assumed to be an iterator.
+        // 'Source' is an iterator.
         {
-            if constexpr(std::is_pointer_v<std::remove_reference_t<Source>>)
-            // 'Source' is a pointer.
+            if constexpr(std::is_base_of_v<std::forward_iterator_tag,
+                                           std::iterator_traits<SourceT>::iterator_category>)
+            // 'Source' is at least an forward iterator.
             {
-                using CharT = char_type_t<std::remove_reference_t<Source>>;
-                const size_t src_size = std::char_traits<CharT>::length(src);
-                return do_encode<SrcEnc, DstEnc>(src, src + src_size, result, loc);
+                auto first = src, last = src;
+                const auto null_char = std::iterator_traits<SourceT>::value_type();
+
+                for (; *last != null_char; ++last); // calculate length
+                return do_encode<SrcEnc, DstEnc>(first, last, result, loc);
             } else
-            // 'Source' is not a pointer.
+            // 'Source' is at least an input iterator.
             {
-                using NTSCIt = ntcs_iterator<std::decay_t<Source>>;
+                using NTSCIt = ntcs_iterator<SourceT>;
                 return do_encode<SrcEnc, DstEnc>(NTSCIt(src), NTSCIt(), result, loc);
             }
         }

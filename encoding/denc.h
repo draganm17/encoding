@@ -217,8 +217,8 @@ namespace denc {
     // ---- Type requirements ----
     //  Source    - should be eather an iterator type and meat the requirements of
     //              'InputIterator', or an range type and meat the requirements of 'InputRange'.
-    //              In both cases 'denc::char_type_t<std::remove_reference_t<Source>>' must be 
-    //              implicitly convertible to 'denc::encoding_traits<SrcEnc>::char_type'.
+    //              In both cases 'denc::char_type_t<std::decay_t<Source>>' must be implicitly
+    //              convertible to 'denc::encoding_traits<SrcEnc>::char_type'.
     //
     //  OutputIt  - must meet the requirements of 'OutputIterator'. The expression 
     //              '*result = denc::encoding_traits<DstEnc>::char_type()' shall be valid.
@@ -248,7 +248,7 @@ namespace denc {
     // The source characters encoding is deduced using the 'DP' deduction policy.
     //
     // Effectivelly calls 
-    // 'denc::encode<denc::encoding_type_t<std::remove_reference_t<Source>, DP>, DstEnc>
+    // 'denc::encode<denc::encoding_type_t<std::decay_t<Source>, DP>, DstEnc>
     //      (std::forward<Source>(src), result, loc)'.
     template <typename DstEnc,
               typename DP,
@@ -325,7 +325,7 @@ namespace denc {
     template <typename DstEnc, typename DP, typename Source, typename OutputIt>
     inline OutputIt encode(deduce<DP>, Source&& src, OutputIt result, const std::locale& loc)
     {
-        using SrcEnc = encoding_type_t<std::remove_reference_t<Source>, DP>;
+        using SrcEnc = encoding_type_t<std::decay_t<Source>, DP>;
         return encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
     }
 

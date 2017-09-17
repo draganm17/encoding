@@ -21,7 +21,7 @@ namespace details {
     //
     // NOTE: 
     // The behaviour is undefined unless the sequence pointed by the adaptable iterator does not
-    // contain an null-character value - 'ntcs_iterator::value_type()'.
+    // contain an null-character value - 'std::iterator_traits<InputIt>::value_type()'.
 
     public:
         using value_type =        std::remove_cv_t<
@@ -74,7 +74,7 @@ namespace details {
 
     template <typename InputIt>
     inline ntcs_iterator<InputIt>::ntcs_iterator(InputIt first)
-    : m_it(std::move(first)) // TODO: STD ???
+    : m_it(std::move(first))
     , m_val(*(*m_it)++)
     { }
 

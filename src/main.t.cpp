@@ -310,7 +310,7 @@ namespace {
     {
         return test_encode_1_pointer_iterator<SrcEncoding, DstEncoding>()   &&
                test_encode_1_container_iterator<SrcEncoding, DstEncoding>() &&
-               //test_encode_1_array_range<SrcEncoding, DstEncoding>()        &&
+               test_encode_1_array_range<SrcEncoding, DstEncoding>()        &&
                test_encode_1_container_range<SrcEncoding, DstEncoding>();
     }
 
@@ -405,7 +405,7 @@ TEST(DENC, EncodingType)
 
 TEST(DENC, EncodingTraits)
 {
-    //EXPECT_TRUE((test_encoding_traits<utf8, char>()));
+    EXPECT_TRUE((test_encoding_traits<utf8, char>()));
     EXPECT_TRUE((test_encoding_traits<utf16, char16_t>()));
     //EXPECT_TRUE((test_encoding_traits<utf32, char32_t>()));
     EXPECT_TRUE((test_encoding_traits<native_narrow, char>()));
@@ -418,7 +418,7 @@ TEST(DENC, Encode_1)
     //EXPECT_TRUE((test_encode_1<utf8, utf16>()));
     //EXPECT_TRUE((test_encode_1<utf8, utf32>()));
     //EXPECT_TRUE((test_encode_1<utf8, native_narrow>()));
-    //EXPECT_TRUE((test_encode_1<utf8, native_wide>()));
+    EXPECT_TRUE((test_encode_1<utf8, native_wide>()));
 
     //EXPECT_TRUE((test_encode_1<utf16, utf8>()));
     EXPECT_TRUE((test_encode_1<utf16, utf16>()));
@@ -432,13 +432,13 @@ TEST(DENC, Encode_1)
     //EXPECT_TRUE((test_encode_1<utf32, native_narrow>()));
     //EXPECT_TRUE((test_encode_1<utf32, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_1<native_narrow, utf8>()));
+    EXPECT_TRUE((test_encode_1<native_narrow, utf8>()));
     EXPECT_TRUE((test_encode_1<native_narrow, utf16>()));
     //EXPECT_TRUE((test_encode_1<native_narrow, utf32>()));
     EXPECT_TRUE((test_encode_1<native_narrow, native_narrow>()));
     EXPECT_TRUE((test_encode_1<native_narrow, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_1<native_wide, utf8>()));
+    EXPECT_TRUE((test_encode_1<native_wide, utf8>()));
     EXPECT_TRUE((test_encode_1<native_wide, utf16>()));
     //EXPECT_TRUE((test_encode_1<native_wide, utf32>()));
     EXPECT_TRUE((test_encode_1<native_wide, native_narrow>()));
@@ -465,13 +465,13 @@ TEST(DENC, Encode_3)
     //EXPECT_TRUE((test_encode_3<utf32, native_narrow>()));
     //EXPECT_TRUE((test_encode_3<utf32, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_3<native_narrow, utf8>()));
+    EXPECT_TRUE((test_encode_3<native_narrow, utf8>()));
     EXPECT_TRUE((test_encode_3<native_narrow, utf16>()));
     //EXPECT_TRUE((test_encode_3<native_narrow, utf32>()));
     EXPECT_TRUE((test_encode_3<native_narrow, native_narrow>()));
     EXPECT_TRUE((test_encode_3<native_narrow, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_3<native_wide, utf8>()));
+    EXPECT_TRUE((test_encode_3<native_wide, utf8>()));
     EXPECT_TRUE((test_encode_3<native_wide, utf16>()));
     //EXPECT_TRUE((test_encode_3<native_wide, utf32>()));
     EXPECT_TRUE((test_encode_3<native_wide, native_narrow>()));

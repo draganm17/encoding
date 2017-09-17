@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iterator>
 #include <locale>
 #include <stdexcept>
 #include <type_traits>
@@ -23,18 +24,20 @@ namespace details {
               typename InputIt, typename OutputIt, 
               typename Codecvt, typename Fn
     >
-    OutputIt do_codecvt(InputIt first, InputIt last, OutputIt result, const Codecvt& cvt, Fn fn);
+    OutputIt do_codecvt(InputIt first, InputIt last,
+                        OutputIt result, const Codecvt& cvt, Fn fn);
+
+    template <typename InCharT, typename OutCharT, 
+              typename OutputIt, typename Codecvt, typename Fn
+    >
+    OutputIt do_codecvt(InCharT* first, InCharT* last, 
+                        OutputIt result, const Codecvt& cvt, Fn fn);
 
     template <typename InCharT, typename OutCharT, 
               typename OutputIt, typename Codecvt, typename Fn
     >
     OutputIt do_codecvt(const InCharT* first, const InCharT* last, 
                         OutputIt result, const Codecvt& cvt, Fn fn);
-
-    template <typename InCharT, typename OutCharT, 
-              typename OutputIt, typename Codecvt, typename Fn
-    >
-    OutputIt do_codecvt(InCharT* first, InCharT* last, OutputIt result, const Codecvt& cvt, Fn fn);
 
     template <typename InputIt, typename OutputIt, 
               typename InternT, typename ExternT, 
@@ -77,21 +80,25 @@ namespace details {
         if (first == last) return result;
         if (cvt.always_noconv()) return std::copy(first, last, result);
 
-        typename Codecvt::result res;
-        typename Codecvt::state_type state{};
-        do {
-            OutCharT  out[8];
-            OutCharT* out_next = out;
-            const InCharT  in = *first++;
-            const InCharT* in_next = &in;
-            using DoCopy = std::is_same<InCharT, OutCharT>; // always true on 'noconv'
-            res = (cvt.*fn)(state, &in, &in + 1, in_next, out, std::end(out), out_next);
-            result = res != Codecvt::noconv ? std::copy(out, out_next, result)
-                                            : copy_constexpr_if(&in, &in + 1, result, DoCopy());
-	    } while (res != Codecvt::error && first != last);
+        std::basic_string<InCharT> in;
+        if constexpr(std::is_base_of_v<std::forward_iterator_tag,
+                                       std::iterator_traits<InputIt>::iterator_category>)
+        // 'InputIt' is at least an forward iterator.
+        {
+            in.reserve(std::distance(first, last));
+        }
+        std::copy(first, last, std::back_inserter(in));
+        return do_codecvt<InCharT, OutCharT>(in.data(), in.data() + in.size(), result, cvt, fn);
+    }
 
-        if (res == Codecvt::ok) return result;
-        throw std::range_error("Bad conversion");
+    template <typename InCharT, typename OutCharT, 
+              typename OutputIt, typename Codecvt, typename Fn
+    >
+    inline OutputIt do_codecvt(InCharT* first, InCharT* last, 
+                               OutputIt result, const Codecvt& cvt, Fn fn)
+    {
+        return do_codecvt<InCharT, OutCharT>((const InCharT*)first, 
+                                             (const InCharT*)last, result, cvt, fn);
     }
 
     template <typename InCharT, typename OutCharT, 
@@ -118,16 +125,6 @@ namespace details {
 
         if (res == Codecvt::ok) return result;
         throw std::range_error("Bad conversion");
-    }
-
-    template <typename InCharT, typename OutCharT, 
-              typename OutputIt, typename Codecvt, typename Fn
-    >
-    inline OutputIt do_codecvt(InCharT* first, InCharT* last, 
-                               OutputIt result, const Codecvt& cvt, Fn fn)
-    {
-        return do_codecvt<InCharT, OutCharT>((const InCharT*)first, 
-                                             (const InCharT*)last, result, cvt, fn);
     }
 
     template <typename InputIt, typename OutputIt, 
