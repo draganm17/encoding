@@ -14,18 +14,16 @@ namespace details {
     //                              class default_deduction_policy                               //
     //-------------------------------------------------------------------------------------------//
 
+    template <typename T> struct default_encoding { };
+    template <> struct default_encoding<char>     { using type = platform::native_narrow; };
+    template <> struct default_encoding<wchar_t>  { using type = platform::native_wide; };
+    template <> struct default_encoding<char16_t> { using type = platform::utf16; };
+    template <> struct default_encoding<char32_t> { using type = platform::utf32; };
+
     struct default_deduction_policy
     {
-    private:
-        template <typename T> struct get { };
-        template <> struct get<char>     { using type = platform::native_narrow; };
-        template <> struct get<wchar_t>  { using type = platform::native_wide; };
-        template <> struct get<char16_t> { using type = platform::utf16; };
-        template <> struct get<char32_t> { using type = platform::utf32; };
-
-    public:
         template <typename CharT>
-        using encoding_type = typename get<CharT>::type;
+        using encoding_type = typename default_encoding<CharT>::type;
     };
 
 

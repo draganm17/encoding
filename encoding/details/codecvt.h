@@ -82,7 +82,7 @@ namespace details {
 
         std::basic_string<InCharT> in;
         if constexpr(std::is_base_of_v<std::forward_iterator_tag,
-                                       std::iterator_traits<InputIt>::iterator_category>)
+                                       typename std::iterator_traits<InputIt>::iterator_category>)
         // 'InputIt' is at least an forward iterator.
         {
             in.reserve(std::distance(first, last));

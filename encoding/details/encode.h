@@ -53,11 +53,11 @@ namespace details {
         // 'Source' is an iterator.
         {
             if constexpr(std::is_base_of_v<std::forward_iterator_tag,
-                                           std::iterator_traits<SourceT>::iterator_category>)
+                                           typename std::iterator_traits<SourceT>::iterator_category>)
             // 'Source' is at least an forward iterator.
             {
                 auto first = src, last = src;
-                const auto null_char = std::iterator_traits<SourceT>::value_type();
+                const auto null_char = typename std::iterator_traits<SourceT>::value_type();
 
                 for (; *last != null_char; ++last); // calculate length
                 return do_encode<SrcEnc, DstEnc>(first, last, result, loc);
@@ -75,7 +75,7 @@ namespace details {
     {
         using SrcTraits = encoding_traits<SrcEnc>;
         using DstTraits = encoding_traits<DstEnc>;
-        using NtTraits  = encoding_traits<native_encoding_type>;
+        using NtTraits  = encoding_traits<platform::native_encoding_type>;
 
         if constexpr(std::is_same_v<SrcEnc, DstEnc>)
         // The source and destination encodings are the same.
@@ -83,13 +83,13 @@ namespace details {
         {
             return std::copy(first, last, result);
         } else 
-        if constexpr(std::is_same_v<DstEnc, native_encoding_type>)
+        if constexpr(std::is_same_v<DstEnc, platform::native_encoding_type>)
         // The destination encoding is the system native encoding.
         // One-step conversion performed.
         {
             return SrcTraits::to_native(first, last, result, loc);
         } else
-        if constexpr(std::is_same_v<SrcEnc, native_encoding_type>)
+        if constexpr(std::is_same_v<SrcEnc, platform::native_encoding_type>)
         // The source encoding is the system native encoding.
         // One-step conversion performed.
         {
