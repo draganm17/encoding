@@ -1,4 +1,5 @@
-#include <array>
+п»ї#include <array>
+#include <forward_list>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -13,20 +14,23 @@
 using namespace denc;
 
 #define TEST_TEXT                            \
-        "«Мой дядя самых честных правил,\n"  \
-        "Когда не в шутку занемог,\n"        \
-        "Он уважать себя заставил\n"         \
-        "И лучше выдумать не мог.\n"         \
-        "Его пример другим наука;\n"         \
-        "Но, боже мой, какая скука\n"        \
-        "С больным сидеть и день и ночь,\n"  \
-        "Не отходя ни шагу прочь!\n"         \
-        "Какое низкое коварство\n"           \
-        "Полуживого забавлять,\n"            \
-        "Ему подушки поправлять,\n"          \
-        "Печально подносить лекарство,\n"    \
-        "Вздыхать и думать про себя:\n"      \
-        "Когда же черт возьмет тебя!»"
+        "В«РњРѕР№ РґСЏРґСЏ СЃР°РјС‹С… С‡РµСЃС‚РЅС‹С… РїСЂР°РІРёР»,\n"  \
+        "РљРѕРіРґР° РЅРµ РІ С€СѓС‚РєСѓ Р·Р°РЅРµРјРѕРі,\n"        \
+        "РћРЅ СѓРІР°Р¶Р°С‚СЊ СЃРµР±СЏ Р·Р°СЃС‚Р°РІРёР»\n"         \
+        "Р Р»СѓС‡С€Рµ РІС‹РґСѓРјР°С‚СЊ РЅРµ РјРѕРі.\n"         \
+        "Р•РіРѕ РїСЂРёРјРµСЂ РґСЂСѓРіРёРј РЅР°СѓРєР°;\n"         \
+        "РќРѕ, Р±РѕР¶Рµ РјРѕР№, РєР°РєР°СЏ СЃРєСѓРєР°\n"        \
+        "РЎ Р±РѕР»СЊРЅС‹Рј СЃРёРґРµС‚СЊ Рё РґРµРЅСЊ Рё РЅРѕС‡СЊ,\n"  \
+        "РќРµ РѕС‚С…РѕРґСЏ РЅРё С€Р°РіСѓ РїСЂРѕС‡СЊ!\n"         \
+        "РљР°РєРѕРµ РЅРёР·РєРѕРµ РєРѕРІР°СЂСЃС‚РІРѕ\n"           \
+        "РџРѕР»СѓР¶РёРІРѕРіРѕ Р·Р°Р±Р°РІР»СЏС‚СЊ,\n"            \
+        "Р•РјСѓ РїРѕРґСѓС€РєРё РїРѕРїСЂР°РІР»СЏС‚СЊ,\n"          \
+        "РџРµС‡Р°Р»СЊРЅРѕ РїРѕРґРЅРѕСЃРёС‚СЊ Р»РµРєР°СЂСЃС‚РІРѕ,\n"    \
+        "Р’Р·РґС‹С…Р°С‚СЊ Рё РґСѓРјР°С‚СЊ РїСЂРѕ СЃРµР±СЏ:\n"      \
+        "РљРѕРіРґР° Р¶Рµ С‡РµСЂС‚ РІРѕР·СЊРјРµС‚ С‚РµР±СЏ!В»"
+
+#define COUNT(arr)  sizeof((arr)) / sizeof((arr)[0])
+
 
 namespace {
 
@@ -36,6 +40,62 @@ namespace {
     const char     native_narrow_str[] =      TEST_TEXT;
     const wchar_t  native_wide_str[]   = L""  TEST_TEXT;
 
+    constexpr const char     (&encoded_string(utf8))          [COUNT(utf8_str)]          { return utf8_str; }
+    constexpr const char16_t (&encoded_string(utf16))         [COUNT(utf16_str)]         { return utf16_str; }
+    constexpr const char32_t (&encoded_string(utf32))         [COUNT(utf32_str)]         { return utf32_str; }
+    constexpr const char     (&encoded_string(native_narrow)) [COUNT(native_narrow_str)] { return native_narrow_str; }
+    constexpr const wchar_t  (&encoded_string(native_wide) )  [COUNT(native_wide_str)]   { return native_wide_str; }
+
+    template <typename Encoding>
+    const auto& encoded_input_range()
+    {
+        // TODO: ...
+
+        return encoded_contiguous_range<Encoding>();
+    }
+
+    template <typename Encoding>
+    const auto& encoded_null_terminated_input_range()
+    {
+        // TODO: ...
+
+        return encoded_null_terminated_contiguous_range<Encoding>();
+    }
+
+    template <typename Encoding>
+    const auto& encoded_forward_range()
+    {
+        using CharT = encoding_traits<Encoding>::char_type;
+        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())) - 1);
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_null_terminated_forward_range()
+    {
+        using CharT = encoding_traits<Encoding>::char_type;
+        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())));
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_contiguous_range()
+    {
+        using CharT = encoding_traits<Encoding>::char_type;
+        static std::basic_string<CharT> result = encoded_string(Encoding());
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_null_terminated_contiguous_range()
+    {
+        using CharT = encoding_traits<Encoding>::char_type;
+        static std::basic_string<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())));
+        return result;
+    }
 
     template <typename DP, typename CharT, typename = void>
     struct can_deduce_impl : std::false_type { };
@@ -190,20 +250,17 @@ namespace {
                        test_encoding_type_container_range<CharT, DP>>
     { };
 
-    constexpr const char     (&get_encoded_string(utf8))          [sizeof(utf8_str)          / sizeof(char)]     { return utf8_str; }
-    constexpr const char16_t (&get_encoded_string(utf16))         [sizeof(utf16_str)         / sizeof(char16_t)] { return utf16_str; }
-    constexpr const char32_t (&get_encoded_string(utf32))         [sizeof(utf32_str)         / sizeof(char32_t)] { return utf32_str; }
-    constexpr const char     (&get_encoded_string(native_narrow)) [sizeof(native_narrow_str) / sizeof(char)]     { return native_narrow_str; }
-    constexpr const wchar_t  (&get_encoded_string(native_wide) )  [sizeof(native_wide_str)   / sizeof(wchar_t)]  { return native_wide_str; }
-
     template <typename Encoding, typename CharT>
     struct test_encoding_traits_typedefs
     : std::conjunction<std::is_same<typename encoding_traits<Encoding>::encoding_type, Encoding>,
                        std::is_same<typename encoding_traits<Encoding>::char_type,     CharT>>
     { };
 
-    template <typename Encoding>
-    bool test_encoding_traits_conversions()
+    template <typename Encoding,
+              typename InputIt1,
+              typename InputIt2>
+    bool do_test_encoding_traits_conversions(InputIt1 first1, InputIt1 last1,
+                                             InputIt2 first2, InputIt2 last2)
     {
         using Traits = encoding_traits<Encoding>;
 
@@ -214,18 +271,47 @@ namespace {
         std::string    to_native_result;
         std::locale loc = std::locale();
     #endif
-        std::basic_string<Traits::char_type> from_native_result;
+        std::basic_string<typename Traits::char_type> from_native_result;
+        Traits::to_native(first1, last1, std::back_inserter(to_native_result), loc);
+        Traits::from_native(first2, last2,std::back_inserter(from_native_result), loc);
 
-        Traits::to_native(std::begin(get_encoded_string(Encoding())),
-                          std::end(get_encoded_string(Encoding())) - 1,
-                          std::back_inserter(to_native_result), loc);
+        return to_native_result   == encoded_string(native_encoding_type()) &&
+               from_native_result == encoded_string(Encoding());
+    }
 
-        Traits::from_native(std::begin(get_encoded_string(native_encoding_type())),
-                            std::end(get_encoded_string(native_encoding_type())) - 1,
-                            std::back_inserter(from_native_result), loc);
+    template <typename Encoding>
+    bool test_encoding_traits_conversions_input_iterator()
+    {
+        auto& rng1 = encoded_input_range<Encoding>();
+        auto& rng2 = encoded_input_range<native_encoding_type>();
+        return do_test_encoding_traits_conversions<Encoding>(std::begin(rng1), std::end(rng1),
+                                                             std::begin(rng2), std::end(rng2));
+    }
 
-        return to_native_result   == get_encoded_string(native_encoding_type()) &&
-               from_native_result == get_encoded_string(Encoding());
+    template <typename Encoding>
+    bool test_encoding_traits_conversions_forward_iterator()
+    {
+        auto& rng1 = encoded_forward_range<Encoding>();
+        auto& rng2 = encoded_forward_range<native_encoding_type>();
+        return do_test_encoding_traits_conversions<Encoding>(std::begin(rng1), std::end(rng1),
+                                                             std::begin(rng2), std::end(rng2));
+    }
+
+    template <typename Encoding>
+    bool test_encoding_traits_conversions_contiguous_iterator()
+    {
+        auto& rng1 = encoded_contiguous_range<Encoding>();
+        auto& rng2 = encoded_contiguous_range<native_encoding_type>();
+        return do_test_encoding_traits_conversions<Encoding>(std::data(rng1), std::data(rng1) + std::size(rng1),
+                                                             std::data(rng2), std::data(rng2) + std::size(rng2));
+    }
+
+    template <typename Encoding>
+    bool test_encoding_traits_conversions()
+    {
+        return test_encoding_traits_conversions_input_iterator<Encoding>()   &&
+               test_encoding_traits_conversions_forward_iterator<Encoding>() &&
+               test_encoding_traits_conversions_contiguous_iterator<Encoding>();
     }
 
     template <typename Encoding, typename CharT>
@@ -251,53 +337,63 @@ namespace {
                                                    std::back_inserter(result), loc);
 
         return //it     == result.end() &&
-               result == get_encoded_string(DstEncoding());
+               result == encoded_string(DstEncoding());
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_input_iterator()
     {
-        using InCharT = encoding_traits<SrcEncoding>::char_type;
-        std::basic_stringstream<InCharT> src;
+        auto& rng = encoded_null_terminated_input_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng));
 
-        std::noskipws(src);
-        src.write(get_encoded_string(SrcEncoding()), sizeof(get_encoded_string(SrcEncoding())));
-        return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src));
+        //using InCharT = encoding_traits<SrcEncoding>::char_type;
+        //std::basic_stringstream<InCharT> src;
+
+        //std::noskipws(src);
+        //src.write(encoded_string(SrcEncoding()), sizeof(encoded_string(SrcEncoding())));
+        //return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src));
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_forward_iterator()
     {
-        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(src);
+        auto& rng = encoded_null_terminated_forward_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng));
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_contiguous_iterator()
     {
-        auto* src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(src);
+        auto& rng = encoded_null_terminated_contiguous_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::data(rng));
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_input_range()
     {
-        // TODO: ...
-        return true;
+        auto& rng = encoded_input_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(rng);
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_forward_range()
     {
-        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(src);
+        auto& rng = encoded_forward_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(rng);
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_1_contiguous_range()
     {
-        auto& src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(src);
+        auto& rng = encoded_contiguous_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(rng);
+    }
+
+    template <typename SrcEncoding, typename DstEncoding>
+    bool test_encode_1_array()
+    {
+        auto& rng = encoded_string(SrcEncoding());
+        return do_test_encode<SrcEncoding, DstEncoding>(rng);
     }
 
     template <typename SrcEncoding, typename DstEncoding>
@@ -308,33 +404,37 @@ namespace {
                test_encode_1_contiguous_iterator<SrcEncoding, DstEncoding>() &&
                test_encode_1_input_range<SrcEncoding, DstEncoding>()         &&
                test_encode_1_forward_range<SrcEncoding, DstEncoding>()       &&
-               test_encode_1_contiguous_range<SrcEncoding, DstEncoding>();
+               test_encode_1_contiguous_range<SrcEncoding, DstEncoding>()    &&
+               test_encode_1_array<SrcEncoding, DstEncoding>();
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_3_input_iterator()
     {
-        using InCharT = encoding_traits<SrcEncoding>::char_type;
-        std::basic_stringstream<InCharT> src;
+        auto& rng = encoded_input_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng), std::end(rng));
 
-        std::noskipws(src);
-        src << get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src),
-                                                          std::istream_iterator<InCharT, InCharT>());
+        //using InCharT = encoding_traits<SrcEncoding>::char_type;
+        //std::basic_stringstream<InCharT> src;
+
+        //std::noskipws(src);
+        //src << encoded_string(SrcEncoding());
+        //return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src),
+        //                                                std::istream_iterator<InCharT, InCharT>());
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_3_forward_iterator()
     {
-        std::basic_string<encoding_traits<SrcEncoding>::char_type> src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(src), std::end(src));
+        auto& rng = encoded_forward_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng), std::end(rng));
     }
 
     template <typename SrcEncoding, typename DstEncoding>
     bool test_encode_3_contiguous_iterator()
     {
-        auto& src = get_encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(src), std::end(src) - 1);
+        auto& rng = encoded_contiguous_range<SrcEncoding>();
+        return do_test_encode<SrcEncoding, DstEncoding>(std::data(rng), std::data(rng) + std::size(rng));
     }
 
     template <typename SrcEncoding, typename DstEncoding>
