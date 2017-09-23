@@ -70,7 +70,8 @@ inline namespace range_traits
     template <typename T>
     struct char_type_impl<T, std::enable_if_t<is_range<T>::value>>
     {
-        using type = std::remove_cv_t<typename std::iterator_traits<iterator_t<T>>::value_type>;
+        using type = std::remove_cv_t<
+                     typename std::iterator_traits<iterator_t<T>>::value_type>;
     };
 
     template <typename T>
