@@ -165,7 +165,7 @@ inline namespace range_traits
     { };
 
 
-#ifdef __NATIVE_NARROW_DISCTINCT_TYPE
+#ifdef DENC_NATIVE_NARROW_DISCTINCT_TYPE
     //-------------------------------------------------------------------------------------------//
     //                      class encoding_traits<platform::native_narrow>                       //
     //-------------------------------------------------------------------------------------------//
@@ -177,7 +177,7 @@ inline namespace range_traits
 #endif
     
 
-#ifdef __NATIVE_WIDE_DISCTINCT_TYPE
+#ifdef DENC_NATIVE_WIDE_DISCTINCT_TYPE
     //-------------------------------------------------------------------------------------------//
     //                       class encoding_traits<platform::native_wide>                        //
     //-------------------------------------------------------------------------------------------//

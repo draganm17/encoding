@@ -43,10 +43,10 @@ namespace {
     constexpr const char     (&encoded_string(utf8))          [COUNT(utf8_str)]          { return utf8_str; }
     constexpr const char16_t (&encoded_string(utf16))         [COUNT(utf16_str)]         { return utf16_str; }
     constexpr const char32_t (&encoded_string(utf32))         [COUNT(utf32_str)]         { return utf32_str; }
-#ifdef __NATIVE_NARROW_DISCTINCT_TYPE
+#ifdef DENC_NATIVE_NARROW_DISCTINCT_TYPE
     constexpr const char     (&encoded_string(native_narrow)) [COUNT(native_narrow_str)] { return native_narrow_str; }
 #endif
-#ifdef __NATIVE_WIDE_DISCTINCT_TYPE
+#ifdef DENC_NATIVE_WIDE_DISCTINCT_TYPE
     constexpr const wchar_t  (&encoded_string(native_wide) )  [COUNT(native_wide_str)]   { return native_wide_str; }
 #endif
 

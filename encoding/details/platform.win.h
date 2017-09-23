@@ -6,8 +6,8 @@
 
 #include <encoding/details/codecvt.h>
 
-#define __NATIVE_NARROW_DISCTINCT_TYPE
-#define __NATIVE_WIDE_DISCTINCT_TYPE
+#define DENC_NATIVE_NARROW_DISCTINCT_TYPE
+#define DENC_NATIVE_WIDE_DISCTINCT_TYPE
 
 
 namespace denc {
