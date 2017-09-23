@@ -43,8 +43,63 @@ namespace {
     constexpr const char     (&encoded_string(utf8))          [COUNT(utf8_str)]          { return utf8_str; }
     constexpr const char16_t (&encoded_string(utf16))         [COUNT(utf16_str)]         { return utf16_str; }
     constexpr const char32_t (&encoded_string(utf32))         [COUNT(utf32_str)]         { return utf32_str; }
+#ifdef __NATIVE_NARROW_DISCTINCT_TYPE
     constexpr const char     (&encoded_string(native_narrow)) [COUNT(native_narrow_str)] { return native_narrow_str; }
+#endif
+#ifdef __NATIVE_WIDE_DISCTINCT_TYPE
     constexpr const wchar_t  (&encoded_string(native_wide) )  [COUNT(native_wide_str)]   { return native_wide_str; }
+#endif
+
+    //template <typename Encoding>
+    //const auto& encoded_input_range()
+    //{
+        // TODO: ...
+
+    //    return encoded_contiguous_range<Encoding>();
+    //}
+
+    //template <typename Encoding>
+    //const auto& encoded_null_terminated_input_range()
+    //{
+        // TODO: ...
+
+    //    return encoded_null_terminated_contiguous_range<Encoding>();
+    //}
+
+    template <typename Encoding>
+    const auto& encoded_forward_range()
+    {
+        using CharT = typename encoding_traits<Encoding>::char_type;
+        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())) - 1);
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_null_terminated_forward_range()
+    {
+        using CharT = typename encoding_traits<Encoding>::char_type;
+        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())));
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_contiguous_range()
+    {
+        using CharT = typename encoding_traits<Encoding>::char_type;
+        static std::basic_string<CharT> result = encoded_string(Encoding());
+        return result;
+    }
+
+    template <typename Encoding>
+    const auto& encoded_null_terminated_contiguous_range()
+    {
+        using CharT = typename encoding_traits<Encoding>::char_type;
+        static std::basic_string<CharT> result(std::begin(encoded_string(Encoding())),
+                                               std::end(encoded_string(Encoding())));
+        return result;
+    }
 
     template <typename Encoding>
     const auto& encoded_input_range()
@@ -60,41 +115,6 @@ namespace {
         // TODO: ...
 
         return encoded_null_terminated_contiguous_range<Encoding>();
-    }
-
-    template <typename Encoding>
-    const auto& encoded_forward_range()
-    {
-        using CharT = encoding_traits<Encoding>::char_type;
-        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
-                                               std::end(encoded_string(Encoding())) - 1);
-        return result;
-    }
-
-    template <typename Encoding>
-    const auto& encoded_null_terminated_forward_range()
-    {
-        using CharT = encoding_traits<Encoding>::char_type;
-        static std::forward_list<CharT> result(std::begin(encoded_string(Encoding())),
-                                               std::end(encoded_string(Encoding())));
-        return result;
-    }
-
-    template <typename Encoding>
-    const auto& encoded_contiguous_range()
-    {
-        using CharT = encoding_traits<Encoding>::char_type;
-        static std::basic_string<CharT> result = encoded_string(Encoding());
-        return result;
-    }
-
-    template <typename Encoding>
-    const auto& encoded_null_terminated_contiguous_range()
-    {
-        using CharT = encoding_traits<Encoding>::char_type;
-        static std::basic_string<CharT> result(std::begin(encoded_string(Encoding())),
-                                               std::end(encoded_string(Encoding())));
-        return result;
     }
 
     template <typename DP, typename CharT, typename = void>
@@ -269,8 +289,9 @@ namespace {
         std::locale loc = std::locale("ru-RU");
     #else
         std::string    to_native_result;
-        std::locale loc = std::locale();
+        std::locale loc = std::locale("en_US.UTF-8");
     #endif
+
         std::basic_string<typename Traits::char_type> from_native_result;
         Traits::to_native(first1, last1, std::back_inserter(to_native_result), loc);
         Traits::from_native(first2, last2,std::back_inserter(from_native_result), loc);
@@ -330,9 +351,9 @@ namespace {
     #ifdef _WIN32
         std::locale loc = std::locale("ru-RU");
     #else
-        std::locale loc = std::locale();
+        std::locale loc = std::locale("en_US.UTF-8");
     #endif
-        std::basic_string<encoding_traits<DstEncoding>::char_type> result;
+        std::basic_string<typename encoding_traits<DstEncoding>::char_type> result;
         auto it = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)..., 
                                                    std::back_inserter(result), loc);
 
@@ -520,7 +541,7 @@ TEST(DENC, EncodingTraits)
 {
     EXPECT_TRUE((test_encoding_traits<utf8, char>()));
     EXPECT_TRUE((test_encoding_traits<utf16, char16_t>()));
-    //EXPECT_TRUE((test_encoding_traits<utf32, char32_t>()));
+    EXPECT_TRUE((test_encoding_traits<utf32, char32_t>()));
     EXPECT_TRUE((test_encoding_traits<native_narrow, char>()));
     EXPECT_TRUE((test_encoding_traits<native_wide, wchar_t>()));
 }

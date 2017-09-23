@@ -81,7 +81,7 @@ namespace platform {
                                 OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<char16_t, char, std::mbstate_t>;
-        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
     template <typename InputIt, typename OutputIt>
@@ -89,7 +89,7 @@ namespace platform {
                               OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<char16_t, char, std::mbstate_t>;
-        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
     template <typename InputIt, typename OutputIt>
@@ -97,7 +97,7 @@ namespace platform {
                                 OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<char32_t, char, std::mbstate_t>;
-        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
     template <typename InputIt, typename OutputIt>
@@ -105,7 +105,7 @@ namespace platform {
                               OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<char32_t, char, std::mbstate_t>;
-        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
     template <typename InputIt, typename OutputIt>
@@ -113,7 +113,7 @@ namespace platform {
                                 OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<wchar_t, char, std::mbstate_t>;
-        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
     template <typename InputIt, typename OutputIt>
@@ -121,7 +121,7 @@ namespace platform {
                               OutputIt result, const std::locale& loc)
     {
         using Codecvt = std::codecvt<wchar_t, char, std::mbstate_t>;
-        return codecvt_in(first, last, result, std::use_facet<Codecvt>(loc));
+        return codecvt_out(first, last, result, std::use_facet<Codecvt>(loc));
     }
 
 }}} // namespace denc::details::platform
