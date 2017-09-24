@@ -164,10 +164,10 @@ namespace denc {
     template <typename SrcEnc,
               typename DstEnc,
               typename Source, 
-              typename OutputIt
+              typename ResultToken
     >
-    OutputIt encode(Source&& src, OutputIt result,
-                    const std::locale& loc = std::locale());
+    auto encode(Source&& src, ResultToken&& token, const std::locale& loc = std::locale())
+    -> typename encode_result<std::decay_t<ResultToken>>::type;
 
     // Converts characters from the source range 'src' to the 'DstEnc'
     // encoding, placing the results in the subsequent locations starting at 'result'.
@@ -176,13 +176,13 @@ namespace denc {
     // Effectivelly calls 
     // 'denc::encode<denc::encoding_type_t<std::decay_t<Source>, DP>, DstEnc>
     //      (std::forward<Source>(src), result, loc)'.
-    template <typename DstEnc,
-              typename DP,
-              typename Source, 
-              typename OutputIt
-    >
-    OutputIt encode(deduce<DP>, Source&& src,
-                    OutputIt result, const std::locale& loc = std::locale());
+    //template <typename DstEnc,
+    //          typename DP,
+    //          typename Source, 
+    //          typename OutputIt
+    //>
+    //OutputIt encode(deduce<DP>, Source&& src,
+    //                OutputIt result, const std::locale& loc = std::locale());
 
     // Converts 'SrcEnc'-encoded characters from the source range ['first', 'last') to
     // the 'DstEnc' encoding, placing the results in the subsequent locations starting
@@ -218,10 +218,11 @@ namespace denc {
     template <typename SrcEnc,
               typename DstEnc,
               typename InputIt, 
-              typename OutputIt
+              typename ResultToken
     >
-    OutputIt encode(InputIt first, InputIt last,
-                    OutputIt result, const std::locale& loc = std::locale());
+    auto encode(InputIt first, InputIt last,
+                ResultToken&& token, const std::locale& loc = std::locale())
+    -> typename encode_result<std::decay_t<ResultToken>>::type;
 
     // Converts characters from the source range ['first', 'last') to the 'DstEnc'
     // encoding, placing the results in the subsequent locations starting at 'result'.
@@ -229,44 +230,51 @@ namespace denc {
     //
     // Effectivelly calls 
     // 'denc::encode<denc::encoding_type_t<InputIt, DP>, DstEnc>(first, last, result, loc)'.
-    template <typename DstEnc,
-              typename DP,
-              typename InputIt, 
-              typename OutputIt
-    >
-    OutputIt encode(deduce<DP>, InputIt first, InputIt last,
-                    OutputIt result, const std::locale& loc = std::locale());
+    //template <typename DstEnc,
+    //          typename DP,
+    //          typename InputIt, 
+    //          typename OutputIt
+    //>
+    //OutputIt encode(deduce<DP>, InputIt first, InputIt last,
+    //                OutputIt result, const std::locale& loc = std::locale());
 
 
     //-------------------------------------------------------------------------------------------//
     //                                    INLINE DEFINITIONS                                     //
     //-------------------------------------------------------------------------------------------//
 
-    template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
-    inline OutputIt encode(Source&& src, OutputIt result, const std::locale& loc)
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    inline auto encode(Source&& src, ResultToken&& token, const std::locale& loc)
+    -> typename encode_result<std::decay_t<ResultToken>>::type
     {
-        return details::do_encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
+        return details::encode<SrcEnc, DstEnc>(std::forward<Source>(src),
+                                               std::forward<ResultToken>(token), loc);
     }
 
-    template <typename DstEnc, typename DP, typename Source, typename OutputIt>
-    inline OutputIt encode(deduce<DP>, Source&& src, OutputIt result, const std::locale& loc)
+    //template <typename DstEnc, typename DP, typename Source, typename OutputIt>
+    //inline OutputIt encode(deduce<DP>, Source&& src, OutputIt result, const std::locale& loc)
+    //{
+    //    using SrcEnc = encoding_type_t<std::decay_t<Source>, DP>;
+    //    return encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
+    //}
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    inline auto encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc)
+    -> typename encode_result<std::decay_t<ResultToken>>::type
     {
-        using SrcEnc = encoding_type_t<std::decay_t<Source>, DP>;
-        return encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
+        return details::encode<SrcEnc, DstEnc>(first, last, std::forward<ResultToken>(token), loc);
     }
 
-    template <typename SrcEnc, typename DstEnc, typename InputIt, typename OutputIt>
-    inline OutputIt encode(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
-    {
-        return details::do_encode<SrcEnc, DstEnc>(first, last, result, loc);
-    }
-
-    template <typename DstEnc, typename DP, typename InputIt, typename OutputIt>
-    inline OutputIt encode(deduce<DP>, InputIt first, InputIt last, 
-                           OutputIt result, const std::locale& loc)
-    {
-        using SrcEnc = encoding_type_t<InputIt, DP>;
-        return encode<SrcEnc, DstEnc>(first, last, result, loc);
-    }
+    //template <typename DstEnc, typename DP, typename InputIt, typename OutputIt>
+    //inline OutputIt encode(deduce<DP>, InputIt first, InputIt last, 
+    //                       OutputIt result, const std::locale& loc)
+    //{
+    //    using SrcEnc = encoding_type_t<InputIt, DP>;
+    //    return encode<SrcEnc, DstEnc>(first, last, result, loc);
+    //}
 
 } // namespace denc

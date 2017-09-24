@@ -96,4 +96,47 @@ inline namespace range_traits
     template <typename T, typename DP>
     using encoding_type_t = typename encoding_type<T, DP>::type;
 
+
+    //-------------------------------------------------------------------------------------------//
+    //                                   class encode_result                                     //
+    //-------------------------------------------------------------------------------------------//
+
+    template <typename ResultToken>
+    class encode_result
+    {
+    public:
+        using type = ResultToken;
+
+    public:
+        template <typename T>
+        explicit encode_result(T&& token);
+
+        encode_result(const encode_result&) = delete;
+
+        encode_result& operator=(const encode_result&) = delete;
+
+    public:
+        type get();
+
+    private:
+        ResultToken m_token;
+    };
+
+
+    //-------------------------------------------------------------------------------------------//
+    //                                    INLINE DEFINITIONS                                     //
+    //-------------------------------------------------------------------------------------------//
+
+    template <typename ResultToken>
+    template <typename T>
+    encode_result<ResultToken>::encode_result(T&& token)
+    : m_token(std::forward<T>(token))
+    { }
+
+    template <typename ResultToken>
+    typename encode_result<ResultToken>::type encode_result<ResultToken>::get()
+    {
+        return std::move(m_token);
+    }
+
 }} // namespace denc::details

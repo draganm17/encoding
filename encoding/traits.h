@@ -55,4 +55,9 @@ namespace denc {
     >
     using encoding_type_t = details::encoding_type_t<T, DP>;
 
+    // TODO: description ...
+    // TODO: move to encoding.h ???
+    template <typename ResultToken>
+    using encode_result = details::encode_result<ResultToken>;
+
 } // namespace denc

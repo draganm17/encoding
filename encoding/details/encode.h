@@ -16,6 +16,10 @@
 namespace denc {
 namespace details {
 
+    struct it_tag { };
+    struct seq_tag { };
+
+
     //-------------------------------------------------------------------------------------------//
     //                                class encoding_traits_base                                 //
     //-------------------------------------------------------------------------------------------//
@@ -104,11 +108,39 @@ namespace details {
     //                                   NON-MEMBER FUNCTIONS                                    //
     //-------------------------------------------------------------------------------------------//
 
-    template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
-    OutputIt do_encode(Source&& src, OutputIt result, const std::locale& loc);
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    typename encode_result<std::decay_t<ResultToken>>::type
+    encode(Source&& src, ResultToken&& token, const std::locale& loc);
 
-    template <typename SrcEnc, typename DstEnc, typename InputIt, typename OutputIt>
-    OutputIt do_encode(InputIt first, InputIt last, OutputIt result, const std::locale& loc);
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    typename encode_result<std::decay_t<ResultToken>>::type
+    encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename OutputIt
+    >
+    OutputIt do_encode(Source&& src, it_tag, OutputIt result, const std::locale& loc);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename Sequence
+    >
+    Sequence do_encode(Source&& src, seq_tag, Sequence result, const std::locale& loc);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename OutputIt
+    >
+    OutputIt do_encode(InputIt first, InputIt last,
+                       it_tag, OutputIt result, const std::locale& loc);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename Sequence
+    >
+    Sequence do_encode(InputIt first, InputIt last,
+                       seq_tag, Sequence result, const std::locale& loc);
 
 
     //-------------------------------------------------------------------------------------------//
@@ -131,8 +163,40 @@ namespace details {
         return platform::to_native(encoding_type(), first, last, result, loc);
     }
 
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    inline typename encode_result<std::decay_t<ResultToken>>::type
+    encode(Source&& src, ResultToken&& token, const std::locale& loc)
+    {
+        using Token = std::decay_t<ResultToken>;
+        using Result  = typename encode_result<Token>::type;
+        using ImplTag = std::conditional_t<std::is_same_v<Result, Token>, it_tag, seq_tag>;
+
+        return do_encode<SrcEnc, DstEnc>(
+               std::forward<Source>(src), ImplTag(),
+               encode_result<Token>(std::forward<ResultToken>(token)).get(), loc);
+    }
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    inline typename encode_result<std::decay_t<ResultToken>>::type
+    encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc)
+    {
+        using Token   = std::decay_t<ResultToken>;
+        using Result  = typename encode_result<Token>::type;
+        using ImplTag = std::conditional_t<std::is_same_v<Result, Token>, it_tag, seq_tag>;
+
+        encode_result<Token> xx(std::forward<ResultToken>(token));
+
+        return do_encode<SrcEnc, DstEnc>(
+               first, last, ImplTag(),
+               encode_result<Token>(std::forward<ResultToken>(token)).get(), loc);
+    }
+
     template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
-    inline OutputIt do_encode(Source&& src, OutputIt result, const std::locale& loc)
+    inline OutputIt do_encode(Source&& src, it_tag, OutputIt result, const std::locale& loc)
     {
         using SourceT = std::decay_t<Source>;
         if constexpr(is_range<SourceT>::value)
@@ -142,12 +206,13 @@ namespace details {
             // 'Source' is an contiguous range.
             {
                 using std::data; using std::size;
-                return do_encode<SrcEnc, DstEnc>(data(src), data(src) + size(src), result, loc);
+                return do_encode<SrcEnc, DstEnc>(data(src), 
+                                                 data(src) + size(src), it_tag(), result, loc);
             } else
             // 'Source' is at least an input range.
             {
                 using std::begin; using std::end;
-                return do_encode<SrcEnc, DstEnc>(begin(src), end(src), result, loc);
+                return do_encode<SrcEnc, DstEnc>(begin(src), end(src), it_tag(), result, loc);
             }
         } else
         // 'Source' is an iterator.
@@ -160,18 +225,27 @@ namespace details {
                 const auto null_char = typename std::iterator_traits<SourceT>::value_type();
 
                 for (; *last != null_char; ++last); // calculate length
-                return do_encode<SrcEnc, DstEnc>(first, last, result, loc);
+                return do_encode<SrcEnc, DstEnc>(first, last, it_tag(), result, loc);
             } else
             // 'Source' is at least an input iterator.
             {
                 using NTSCIt = ntcs_iterator<SourceT>;
-                return do_encode<SrcEnc, DstEnc>(NTSCIt(src), NTSCIt(), result, loc);
+                return do_encode<SrcEnc, DstEnc>(NTSCIt(src), NTSCIt(), it_tag(), result, loc);
             }
         }
     }
 
+    template <typename SrcEnc, typename DstEnc, typename Source, typename Sequence>
+    inline Sequence do_encode(Source&& src, seq_tag, Sequence result, const std::locale& loc)
+    {
+        do_encode<SrcEnc, DstEnc>(std::forward<Source>(src), it_tag(),
+                                  std::inserter(result, result.end()), loc);
+        return std::move(result);
+    }
+
     template <typename SrcEnc, typename DstEnc, typename InputIt, typename OutputIt>
-    inline OutputIt do_encode(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    inline OutputIt do_encode(InputIt first, InputIt last,
+                              it_tag, OutputIt result, const std::locale& loc)
     {
         using SrcTraits = encoding_traits<SrcEnc>;
         using DstTraits = encoding_traits<DstEnc>;
@@ -202,6 +276,15 @@ namespace details {
             SrcTraits::to_native(first, last, std::back_inserter(tmp), loc);
             return DstTraits::from_native(tmp.data(), tmp.data() + tmp.size(), result, loc);
         }
+    }
+
+    template <typename SrcEnc, typename DstEnc, typename InputIt, typename Sequence>
+    inline Sequence do_encode(InputIt first, InputIt last,
+                              seq_tag, Sequence result, const std::locale& loc)
+    {
+        do_encode<SrcEnc, DstEnc>(first, last, it_tag(),
+                                  std::inserter(result, result.end()), loc);
+        return std::move(result);
     }
 
 }} // namespace denc::details
