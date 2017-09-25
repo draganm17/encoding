@@ -11,6 +11,7 @@
 #else
 #include <encoding/details/platform.pos.h>
 #endif
+#include <encoding/traits.h>
 
 
 namespace denc {

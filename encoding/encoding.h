@@ -1,3 +1,4 @@
+/** @file */
 #pragma once
 
 #include <locale>
@@ -11,123 +12,111 @@
 
 namespace denc {
 
-    // Defines supported encodings.
-    // Each encoding is represented by an empty distinct type, except 'denc::native_narrow'
-    // and 'denc::native_wide', which are allowed to be aliases to any other encoding type.
-    // The user can provide additional encoding types. For each encoding type 'E' an
-    // 'denc::encoding_traits<E>' specialization should be provided.
+    //! Defines UTF-8 encoding type.
+    /*! `denc::utf8` is always a distinct type. */
     using utf8          = details::platform::utf8;
+
+    //! Defines UTF-16 encoding type.
+    /*! `denc::utf16` is always a distinct type. */
     using utf16         = details::platform::utf16;
+
+    //! Defines UTF-32 encoding type.
+    /*! `denc::utf32` is always a distinct type. */
     using utf32         = details::platform::utf32;
+
+    //! Defines the system narrow encoding type.
+    /*! `denc::native_wide` is allowed to be an alias to any other encoding type. */
     using native_narrow = details::platform::native_narrow;
+
+    //! Defines the system wide encoding type.
+    /*! `denc::native_wide` is allowed to be an alias to any other encoding type. */
     using native_wide   = details::platform::native_wide;
 
-    // Defines the platform-specific native encoding type.
+    //! Defines the platform-specific native encoding type.
+    /*! `denc::native_encoding_type` is always an alias to another encoding type. */
     using native_encoding_type = details::platform::native_encoding_type;
 
-    // The 'denc::encoding_traits' class is a traits class template that abstracts basic operations
-    // for a given encoding type.
-    // The 'denc::encoding_traits' class template serves as a basis for explicit instantiations. The 
-    // user can provide a specialization for any custom encoding types. The following specializations
-    // are already provided by the library:
-    // - 'denc::encoding_traits<utf8>';
-    // - 'denc::encoding_traits<utf16>';
-    // - 'denc::encoding_traits<utf32>';
-    // - 'denc::encoding_traits<native_narrow>' (only if 'denc::native_narrow' is a distinct type);
-    // - 'denc::encoding_traits<native_wide>' (only if 'denc::native_wide' is a distinct type).
+    //! Encoding traits.
+    /*! The `denc::encoding_traits` class is a traits class template that abstracts basic
+    //  operations for a given encoding type. \n
+    //  The `denc::encoding_traits` class template serves as a basis for explicit instantiations.
+    //  The user can provide a specialization for any custom encoding types. The following
+    //  specializations are already provided by the library:
+    //  - `denc::encoding_traits<denc::utf8>`;
+    //  - `denc::encoding_traits<denc::utf16>`;
+    //  - `denc::encoding_traits<denc::utf32>`;
+    //  - `denc::encoding_traits<denc::native_narrow>`;
+    //  - `denc::encoding_traits<denc::native_wide>`.
     //
     // The values of the member typedefs are as follows.
-    // ======================================================================
-    //                                       |  encoding_type  |  char_type
-    // ======================================================================
-    // denc::encoding_traits<utf8>           |  utf8           |  char
-    // ----------------------------------------------------------------------
-    // denc::encoding_traits<utf16>          |  utf16          |  char16_t
-    // ----------------------------------------------------------------------
-    // denc::encoding_traits<utf32>          |  utf32          |  char32_t
-    // ----------------------------------------------------------------------
-    // denc::encoding_traits<native_narrow>  |  native_narrow  |  char
-    // ----------------------------------------------------------------------
-    // denc::encoding_traits<native_wide>    |  native_wide    |  wchar_t
-    //=======================================================================
-    //
-    //
-    // MEMBER TYPES
-    // ============================================================================================
-    //  encoding_type   |  'Encoding'
-    // --------------------------------------------------------------------------------------------
-    //  char_type       |  An character type that can hold all encoding code points.
-    // ============================================================================================
-    //
-    //
-    // MEMBER FUNCTIONS
-    // ============================================================================================
-    // template <typename InputIt, typename OutputIt>
-    // static OutputIt from_native(InputIt first, InputIt last,
-    //                             OutputIt result, const std::locale& loc = std::locale());
-    //
-    // Converts natively-encoded characters from the source range ['first', 'last') to
-    // the 'Encoding' encoding, placing the results in the subsequent locations starting
-    // at 'result'.
-    //
-    // ---- Parameters ----
-    // first, last - the range of characters to convert.
-    //
-    // result      - the beginning of the destination range.
-    //
-    // loc         - TODO: ...
-    //
-    //
-    // ---- Type requirements ----
-    //  InputIt   - must meet the requirements of 'InputIterator'. 'denc::char_type_t<InputIt>' must be
-    //              implicitly convertible to 'denc::encoding_traits<native_encoding_type>::char_type'.
-    //
-    //  OutputIt  - must meet the requirements of 'OutputIterator'. The expression
-    //              '*result = char_type()' shall be valid.
-    //
-    //
-    // ---- Return value ----
-    // Output iterator to the element past the last element converted.
-    //
-    //
-    // ---- Exceptions ----
-    // Throws 'std::range_error' on conversion failure.
-    //
-    // --------------------------------------------------------------------------------------------
-    // template <typename InputIt, typename OutputIt>
-    // static OutputIt to_native(InputIt first, InputIt last,
-    //                           OutputIt result, const std::locale& loc = std::locale());
-    //
-    // Converts 'Encoding'-encoded characters from the source range ['first', 'last') to
-    // the system native encoding, placing the results in the subsequent locations starting
-    // at 'result'.
-    //
-    // ---- Parameters ----
-    // first, last - the range of characters to convert.
-    //
-    // result      - the beginning of the destination range.
-    //
-    // loc         - TODO: ...
-    //
-    //
-    // ---- Type requirements ----
-    //  InputIt   - must meet the requirements of 'InputIterator'. 'denc::char_type_t<InputIt>'
-    //              must be implicitly convertible to 'char_type'.
-    //
-    //  OutputIt  - must meet the requirements of 'OutputIterator'. The expression 
-    //              '*result = denc::encoding_traits<denc::native_encoding_type>::char_type()' 
-    //              shall be valid.
-    //
-    //
-    // ---- Return value ----
-    // Output iterator to the element past the last element converted.
-    //
-    //
-    // ---- Exceptions ----
-    // Throws 'std::range_error' on conversion failure.
-    // ============================================================================================
+    // Specialization                               | `encoding_type`       | `char_type`
+    // -------------------------------------------- | --------------------- | ------------
+    // `denc::encoding_traits<denc::utf8>`          | `denc::utf8`          | `char`
+    // `denc::encoding_traits<denc::utf16>`         | `denc::utf16`         | `char16_t`
+    // `denc::encoding_traits<denc::utf32>`         | `denc::utf32`         | `char32_t`
+    // `denc::encoding_traits<denc::native_narrow>` | `denc::native_narrow` | `char`
+    // `denc::encoding_traits<denc::native_wide>`   | `denc::native_wide`   | `wchar_t`
+    */
     template <typename Encoding>
-    using encoding_traits = details::encoding_traits<Encoding>;
+    struct encoding_traits
+    {
+        //! `Encoding`.
+        using encoding_type = typename details::encoding_traits<Encoding>::encoding_type;
+
+        //! An character type that can hold all encoding code points.
+        using char_type     = typename details::encoding_traits<Encoding>::char_type;
+
+        /*! Converts natively-encoded characters from the source range [`first`, `last`) to
+        //  the `Encoding` encoding, placing the results in the subsequent locations starting
+        //  at `result`.
+        //
+        //  @tparam InputIt - must meet the requirements of `InputIterator`.
+        //                    `denc::char_type_t<InputIt>` must be implicitly convertible 
+        //                    to `denc::encoding_traits<native_encoding_type>::char_type`.
+        //
+        //  @tparam OutputIt - must meet the requirements of `OutputIterator`.
+        //                     The expression `*result = char_type()` shall be valid.
+        //
+        //  @param[in] first, last - the range of characters to convert.
+        //
+        //  @param[in] result      - the beginning of the destination range.
+        //
+        //  @param[in] loc         - TODO: ...
+        //
+        //  @return Output iterator to the element past the last element converted.
+        //
+        //  @throw std::range_error on conversion failure.
+        */
+        template <typename InputIt, typename OutputIt>
+        static OutputIt to_native(InputIt first, InputIt last,
+                                  OutputIt result, const std::locale& loc = std::locale());
+
+        /*! Converts `Encoding`-encoded characters from the source range [`first`, `last`) to
+        //  the system native encoding, placing the results in the subsequent locations starting
+        //  at `result`.
+        //
+        //  @tparam InputIt - must meet the requirements of `InputIterator`.
+        //                    `denc::char_type_t<InputIt>` must be implicitly convertible to
+        //                    `char_type`.
+        //
+        //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
+        //                     `*result = denc::encoding_traits<denc::native_encoding_type>::char_type()`
+        //                     shall be valid.
+        //
+        //  @param[in] first, last - the range of characters to convert.
+        //
+        //  @param[in] result      - the beginning of the destination range.
+        //
+        //  @param[in] loc         - TODO: ...
+        //
+        //  @return Output iterator to the element past the last element converted.
+        //
+        //  @throw std::range_error on conversion failure.
+        */
+        template <typename InputIt, typename OutputIt>
+        static OutputIt from_native(InputIt first, InputIt last,
+                                    OutputIt result, const std::locale& loc = std::locale());
+    };
 
     // Converts 'SrcEnc'-encoded characters from the source range 'src' to the 'DstEnc'
     // encoding, placing the results in the subsequent locations starting at 'result'.
@@ -242,6 +231,22 @@ namespace denc {
     //-------------------------------------------------------------------------------------------//
     //                                    INLINE DEFINITIONS                                     //
     //-------------------------------------------------------------------------------------------//
+
+    template <typename Encoding>
+    template <typename InputIt, typename OutputIt>
+    inline OutputIt encoding_traits<Encoding>::to_native(InputIt first, InputIt last,
+                                                         OutputIt result, const std::locale& loc)
+    {
+        return details::encoding_traits<Encoding>::to_native(first, last, result, loc);
+    }
+
+    template <typename Encoding>
+    template <typename InputIt, typename OutputIt>
+    inline OutputIt encoding_traits<Encoding>::from_native(InputIt first, InputIt last,
+                                                           OutputIt result, const std::locale& loc)
+    {
+        return details::encoding_traits<Encoding>::from_native(first, last, result, loc);
+    }
 
     template <typename SrcEnc, typename DstEnc,
               typename Source, typename ResultToken
