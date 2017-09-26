@@ -118,102 +118,97 @@ namespace denc {
                                     OutputIt result, const std::locale& loc = std::locale());
     };
 
-    /*! Converts `SrcEnc`-encoded characters from the source range `src` to the `DstEnc`
-    //  encoding, placing the results in the subsequent locations starting at `result`.
-    //
-    //  @tparam Source - should be eather an iterator type and meat the requirements of
-    //                   `InputIterator`, or an range type and meat the requirements of `InputRange`. \n
-    //                   In both cases `denc::char_type_t<std::decay_t<Source>>` must be implicitly
-    //                   convertible to `denc::encoding_traits<SrcEnc>::char_type`.
-    //
-    //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
-    //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
-    //
-    //  @param[in] src    - an iterator to a null-terminated character sequence, or an range of characters.
-    //
-    //  @param[in] result - the beginning of the destination range.
-    //
-    //  @param[in] loc    - TODO: ...
-    //
-    //
-    //  @return Output iterator to the element past the last element converted.
-    //
-    //  @throw std::range_error on conversion failure.
-    //
-    // ---- Notes ----
-    // TODO: ...
-    //
-    */
-    template <typename SrcEnc,
-              typename DstEnc,
-              typename Source, 
-              typename ResultToken
-    >
-    auto encode(Source&& src, ResultToken&& token, const std::locale& loc = std::locale())
-    -> typename encode_result<std::decay_t<ResultToken>>::type;
 
-    // Converts characters from the source range 'src' to the 'DstEnc'
-    // encoding, placing the results in the subsequent locations starting at 'result'.
-    // The source characters encoding is deduced using the 'DP' deduction policy.
-    //
-    // Effectivelly calls 
-    // 'denc::encode<denc::encoding_type_t<std::decay_t<Source>, DP>, DstEnc>
-    //      (std::forward<Source>(src), result, loc)'.
-    //template <typename DstEnc,
-    //          typename DP,
-    //          typename Source, 
-    //          typename OutputIt
-    //>
-    //OutputIt encode(deduce<DP>, Source&& src,
-    //                OutputIt result, const std::locale& loc = std::locale());
+    //! TODO: ...
+    template <typename SrcEnc, typename DstEnc>
+    class codec
+    {
+    public:
+        using source_encoding_type = SrcEnc;
 
-    /*! Converts `SrcEnc`-encoded characters from the source range [`first`, `last`) to
-    //  the `DstEnc` encoding, placing the results in the subsequent locations starting
-    //  at `result`.
-    //
-    //  @tparam InputIt - must meet the requirements of `InputIterator`. `denc::char_type_t<InputIt>`
-    //                    must be implicitly convertible to `denc::encoding_traits<SrcEnc>::char_type`.
-    //
-    //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
-    //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
-    //
-    //  @param[in] first, last - the range of characters to convert.
-    //
-    //  @param[in] result      - the beginning of the destination range.
-    //
-    //  @param[in] loc         - TODO: ...
-    //
-    //  @return Output iterator to the element past the last element converted.
-    //
-    //  @throw std::range_error on conversion failure.
-    //
-    //
-    // ---- Notes ----
-    // TODO: ...
-    //
-    */
-    template <typename SrcEnc,
-              typename DstEnc,
-              typename InputIt, 
-              typename ResultToken
-    >
-    auto encode(InputIt first, InputIt last,
-                ResultToken&& token, const std::locale& loc = std::locale())
-    -> typename encode_result<std::decay_t<ResultToken>>::type;
+        using destination_encoding_type = DstEnc;
 
-    // Converts characters from the source range ['first', 'last') to the 'DstEnc'
-    // encoding, placing the results in the subsequent locations starting at 'result'.
-    // The source characters encoding is deduced using the 'DP' deduction policy.
-    //
-    // Effectivelly calls 
-    // 'denc::encode<denc::encoding_type_t<InputIt, DP>, DstEnc>(first, last, result, loc)'.
-    //template <typename DstEnc,
-    //          typename DP,
-    //          typename InputIt, 
-    //          typename OutputIt
-    //>
-    //OutputIt encode(deduce<DP>, InputIt first, InputIt last,
-    //                OutputIt result, const std::locale& loc = std::locale());
+    public:
+        explicit codec(const std::locale& loc = std::locale());
+
+        codec(const codec&) = delete;
+
+        codec& operator=(const codec&) = delete;
+
+    public:
+        //! Returns the current locale associated with the codec.
+        std::locale getloc() const;
+
+    public:
+        /*! Converts `SrcEnc`-encoded characters from the source range `src` to the `DstEnc`
+        //  encoding, placing the results in the subsequent locations starting at `result`.
+        //
+        //  @tparam Source - should be eather an iterator type and meat the requirements of
+        //                   `InputIterator`, or an range type and meat the requirements of `InputRange`. \n
+        //                   In both cases `denc::char_type_t<std::decay_t<Source>>` must be implicitly
+        //                   convertible to `denc::encoding_traits<SrcEnc>::char_type`.
+        //
+        //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
+        //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
+        //
+        //  @param[in] src    - an iterator to a null-terminated character sequence, or an range of characters.
+        //
+        //  @param[in] result - the beginning of the destination range.
+        //
+        //  @param[in] loc    - TODO: ...
+        //
+        //
+        //  @return Output iterator to the element past the last element converted.
+        //
+        //  @throw std::range_error on conversion failure.
+        //
+        // ---- Notes ----
+        // TODO: ...
+        //
+        */
+        template <typename Source, typename ResultToken>
+        auto operator()(Source&& src, ResultToken&& token)
+        -> typename encode_result<std::decay_t<ResultToken>>::type;
+
+        /*! Converts `SrcEnc`-encoded characters from the source range [`first`, `last`) to
+        //  the `DstEnc` encoding, placing the results in the subsequent locations starting
+        //  at `result`.
+        //
+        //  @tparam InputIt - must meet the requirements of `InputIterator`. `denc::char_type_t<InputIt>`
+        //                    must be implicitly convertible to `denc::encoding_traits<SrcEnc>::char_type`.
+        //
+        //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
+        //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
+        //
+        //  @param[in] first, last - the range of characters to convert.
+        //
+        //  @param[in] result      - the beginning of the destination range.
+        //
+        //  @param[in] loc         - TODO: ...
+        //
+        //  @return Output iterator to the element past the last element converted.
+        //
+        //  @throw std::range_error on conversion failure.
+        //
+        //
+        // ---- Notes ----
+        // TODO: ...
+        //
+        */
+        template <typename InputIt, typename ResultToken>
+        auto operator()(InputIt first, InputIt last, ResultToken&& token)
+        -> typename encode_result<std::decay_t<ResultToken>>::type;
+
+        //! Replaces the current locale with `loc`.
+        /*! @param loc - new locale to use.
+        //
+        //  @return The locale before the call to this function.
+        */
+        std::locale imbue(const std::locale& loc);
+
+    private:
+        std::locale m_loc;
+    };
 
 
     //-------------------------------------------------------------------------------------------//
@@ -236,38 +231,40 @@ namespace denc {
         return details::encoding_traits<Encoding>::from_native(first, last, result, loc);
     }
 
-    template <typename SrcEnc, typename DstEnc,
-              typename Source, typename ResultToken
-    >
-    inline auto encode(Source&& src, ResultToken&& token, const std::locale& loc)
+
+    template <typename SrcEnc, typename DstEnc>
+    codec<SrcEnc, DstEnc>::codec(const std::locale& loc)
+    : m_loc(loc)
+    { }
+
+    template <typename SrcEnc, typename DstEnc>
+    inline std::locale codec<SrcEnc, DstEnc>::getloc() const
+    {
+        return m_loc;
+    }
+
+    template <typename SrcEnc, typename DstEnc>
+    template <typename Source, typename ResultToken>
+    inline auto codec<SrcEnc, DstEnc>::operator()(Source&& src, ResultToken&& token)
     -> typename encode_result<std::decay_t<ResultToken>>::type
     {
         return details::encode<SrcEnc, DstEnc>(std::forward<Source>(src),
-                                               std::forward<ResultToken>(token), loc);
+                                               std::forward<ResultToken>(token), m_loc);
     }
 
-    //template <typename DstEnc, typename DP, typename Source, typename OutputIt>
-    //inline OutputIt encode(deduce<DP>, Source&& src, OutputIt result, const std::locale& loc)
-    //{
-    //    using SrcEnc = encoding_type_t<std::decay_t<Source>, DP>;
-    //    return encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
-    //}
-
-    template <typename SrcEnc, typename DstEnc,
-              typename InputIt, typename ResultToken
-    >
-    inline auto encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc)
+    template <typename SrcEnc, typename DstEnc>
+    template <typename InputIt, typename ResultToken>
+    inline auto codec<SrcEnc, DstEnc>::operator()(InputIt first, InputIt last, ResultToken&& token)
     -> typename encode_result<std::decay_t<ResultToken>>::type
     {
-        return details::encode<SrcEnc, DstEnc>(first, last, std::forward<ResultToken>(token), loc);
+        return details::encode<SrcEnc, DstEnc>(first, last,
+                                               std::forward<ResultToken>(token), m_loc);
     }
 
-    //template <typename DstEnc, typename DP, typename InputIt, typename OutputIt>
-    //inline OutputIt encode(deduce<DP>, InputIt first, InputIt last, 
-    //                       OutputIt result, const std::locale& loc)
-    //{
-    //    using SrcEnc = encoding_type_t<InputIt, DP>;
-    //    return encode<SrcEnc, DstEnc>(first, last, result, loc);
-    //}
+    template <typename SrcEnc, typename DstEnc>
+    inline std::locale codec<SrcEnc, DstEnc>::imbue(const std::locale& loc)
+    {
+        m_loc = std::locale(loc);
+    }
 
 } // namespace denc

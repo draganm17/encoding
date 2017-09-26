@@ -342,8 +342,8 @@ namespace {
                test_encoding_traits_conversions<Encoding>();
     }
 
-    template <typename SrcEncoding, 
-              typename DstEncoding,
+    template <typename SrcEnc, 
+              typename DstEnc,
               typename... Args
     >
     bool do_test_encode(Args&&... args)
@@ -353,123 +353,121 @@ namespace {
     #else
         std::locale loc = std::locale("en_US.UTF-8");
     #endif
-        using DstCharT = typename encoding_traits<DstEncoding>::char_type;
+        using DstCharT = typename encoding_traits<DstEnc>::char_type;
 
+        codec<SrcEnc, DstEnc> codec(loc);
         std::basic_string<DstCharT> result1, result2;
-        auto it = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)..., 
-                                                   std::back_inserter(result1), loc);
-
-        result2 = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)...,
-                                                   use_basic_string<DstCharT>(), loc);
+        auto it = codec(std::forward<Args>(args)..., std::back_inserter(result1));
+        result2 = codec(std::forward<Args>(args)..., use_basic_string<DstCharT>());
 
         return //it     == result.end() &&
-               result1 == encoded_string(DstEncoding()) &&
-               result2 == encoded_string(DstEncoding());
+               result1 == encoded_string(DstEnc()) &&
+               result2 == encoded_string(DstEnc());
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_input_iterator()
     {
-        auto& rng = encoded_null_terminated_input_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng));
+        auto& rng = encoded_null_terminated_input_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::begin(rng));
 
-        //using InCharT = encoding_traits<SrcEncoding>::char_type;
+        //using InCharT = encoding_traits<SrcEnc>::char_type;
         //std::basic_stringstream<InCharT> src;
 
         //std::noskipws(src);
-        //src.write(encoded_string(SrcEncoding()), sizeof(encoded_string(SrcEncoding())));
-        //return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src));
+        //src.write(encoded_string(SrcEnc()), sizeof(encoded_string(SrcEnc())));
+        //return do_test_encode<SrcEnc, DstEnc>(std::istream_iterator<InCharT, InCharT>(src));
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_forward_iterator()
     {
-        auto& rng = encoded_null_terminated_forward_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng));
+        auto& rng = encoded_null_terminated_forward_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::begin(rng));
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_contiguous_iterator()
     {
-        auto& rng = encoded_null_terminated_contiguous_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::data(rng));
+        auto& rng = encoded_null_terminated_contiguous_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::data(rng));
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_input_range()
     {
-        auto& rng = encoded_input_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(rng);
+        auto& rng = encoded_input_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(rng);
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_forward_range()
     {
-        auto& rng = encoded_forward_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(rng);
+        auto& rng = encoded_forward_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(rng);
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_contiguous_range()
     {
-        auto& rng = encoded_contiguous_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(rng);
+        auto& rng = encoded_contiguous_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(rng);
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1_array()
     {
-        auto& rng = encoded_string(SrcEncoding());
-        return do_test_encode<SrcEncoding, DstEncoding>(rng);
+        auto& rng = encoded_string(SrcEnc());
+        return do_test_encode<SrcEnc, DstEnc>(rng);
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_1()
     {
-        return test_encode_1_input_iterator<SrcEncoding, DstEncoding>()      &&
-               test_encode_1_forward_iterator<SrcEncoding, DstEncoding>()    &&
-               test_encode_1_contiguous_iterator<SrcEncoding, DstEncoding>() &&
-               test_encode_1_input_range<SrcEncoding, DstEncoding>()         &&
-               test_encode_1_forward_range<SrcEncoding, DstEncoding>()       &&
-               test_encode_1_contiguous_range<SrcEncoding, DstEncoding>()    &&
-               test_encode_1_array<SrcEncoding, DstEncoding>();
+        return test_encode_1_input_iterator<SrcEnc, DstEnc>()      &&
+               test_encode_1_forward_iterator<SrcEnc, DstEnc>()    &&
+               test_encode_1_contiguous_iterator<SrcEnc, DstEnc>() &&
+               test_encode_1_input_range<SrcEnc, DstEnc>()         &&
+               test_encode_1_forward_range<SrcEnc, DstEnc>()       &&
+               test_encode_1_contiguous_range<SrcEnc, DstEnc>()    &&
+               test_encode_1_array<SrcEnc, DstEnc>();
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_3_input_iterator()
     {
-        auto& rng = encoded_input_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng), std::end(rng));
+        auto& rng = encoded_input_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::begin(rng), std::end(rng));
 
-        //using InCharT = encoding_traits<SrcEncoding>::char_type;
+        //using InCharT = encoding_traits<SrcEnc>::char_type;
         //std::basic_stringstream<InCharT> src;
 
         //std::noskipws(src);
-        //src << encoded_string(SrcEncoding());
-        //return do_test_encode<SrcEncoding, DstEncoding>(std::istream_iterator<InCharT, InCharT>(src),
+        //src << encoded_string(SrcEnc());
+        //return do_test_encode<SrcEnc, DstEnc>(std::istream_iterator<InCharT, InCharT>(src),
         //                                                std::istream_iterator<InCharT, InCharT>());
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_3_forward_iterator()
     {
-        auto& rng = encoded_forward_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::begin(rng), std::end(rng));
+        auto& rng = encoded_forward_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::begin(rng), std::end(rng));
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_3_contiguous_iterator()
     {
-        auto& rng = encoded_contiguous_range<SrcEncoding>();
-        return do_test_encode<SrcEncoding, DstEncoding>(std::data(rng), std::data(rng) + std::size(rng));
+        auto& rng = encoded_contiguous_range<SrcEnc>();
+        return do_test_encode<SrcEnc, DstEnc>(std::data(rng), std::data(rng) + std::size(rng));
     }
 
-    template <typename SrcEncoding, typename DstEncoding>
+    template <typename SrcEnc, typename DstEnc>
     bool test_encode_3()
     {
-        return test_encode_3_input_iterator<SrcEncoding, DstEncoding>()   &&
-               test_encode_3_forward_iterator<SrcEncoding, DstEncoding>() &&
-               test_encode_3_contiguous_iterator<SrcEncoding, DstEncoding>();
+        return test_encode_3_input_iterator<SrcEnc, DstEnc>()   &&
+               test_encode_3_forward_iterator<SrcEnc, DstEnc>() &&
+               test_encode_3_contiguous_iterator<SrcEnc, DstEnc>();
     }
 }
 
@@ -549,7 +547,7 @@ TEST(DENC, EncodingTraits)
 {
     EXPECT_TRUE((test_encoding_traits<utf8, char>()));
     EXPECT_TRUE((test_encoding_traits<utf16, char16_t>()));
-    //EXPECT_TRUE((test_encoding_traits<utf32, char32_t>()));
+    EXPECT_TRUE((test_encoding_traits<utf32, char32_t>()));
     EXPECT_TRUE((test_encoding_traits<native_narrow, char>()));
     EXPECT_TRUE((test_encoding_traits<native_wide, wchar_t>()));
 }
@@ -558,31 +556,31 @@ TEST(DENC, Encode_1)
 {
     EXPECT_TRUE((test_encode_1<utf8, utf8>()));
     EXPECT_TRUE((test_encode_1<utf8, utf16>()));
-    //EXPECT_TRUE((test_encode_1<utf8, utf32>()));
+    EXPECT_TRUE((test_encode_1<utf8, utf32>()));
     EXPECT_TRUE((test_encode_1<utf8, native_narrow>()));
     EXPECT_TRUE((test_encode_1<utf8, native_wide>()));
 
     EXPECT_TRUE((test_encode_1<utf16, utf8>()));
     EXPECT_TRUE((test_encode_1<utf16, utf16>()));
-    //EXPECT_TRUE((test_encode_1<utf16, utf32>()));
+    EXPECT_TRUE((test_encode_1<utf16, utf32>()));
     EXPECT_TRUE((test_encode_1<utf16, native_narrow>()));
     EXPECT_TRUE((test_encode_1<utf16, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_1<utf32, utf8>()));
-    //EXPECT_TRUE((test_encode_1<utf32, utf16>()));
+    EXPECT_TRUE((test_encode_1<utf32, utf8>()));
+    EXPECT_TRUE((test_encode_1<utf32, utf16>()));
     EXPECT_TRUE((test_encode_1<utf32, utf32>()));
-    //EXPECT_TRUE((test_encode_1<utf32, native_narrow>()));
-    //EXPECT_TRUE((test_encode_1<utf32, native_wide>()));
+    EXPECT_TRUE((test_encode_1<utf32, native_narrow>()));
+    EXPECT_TRUE((test_encode_1<utf32, native_wide>()));
 
     EXPECT_TRUE((test_encode_1<native_narrow, utf8>()));
     EXPECT_TRUE((test_encode_1<native_narrow, utf16>()));
-    //EXPECT_TRUE((test_encode_1<native_narrow, utf32>()));
+    EXPECT_TRUE((test_encode_1<native_narrow, utf32>()));
     EXPECT_TRUE((test_encode_1<native_narrow, native_narrow>()));
     EXPECT_TRUE((test_encode_1<native_narrow, native_wide>()));
 
     EXPECT_TRUE((test_encode_1<native_wide, utf8>()));
     EXPECT_TRUE((test_encode_1<native_wide, utf16>()));
-    //EXPECT_TRUE((test_encode_1<native_wide, utf32>()));
+    EXPECT_TRUE((test_encode_1<native_wide, utf32>()));
     EXPECT_TRUE((test_encode_1<native_wide, native_narrow>()));
     EXPECT_TRUE((test_encode_1<native_wide, native_wide>()));
 }
@@ -591,31 +589,31 @@ TEST(DENC, Encode_3)
 {
     EXPECT_TRUE((test_encode_3<utf8, utf8>()));
     EXPECT_TRUE((test_encode_3<utf8, utf16>()));
-    //EXPECT_TRUE((test_encode_3<utf8, utf32>()));
+    EXPECT_TRUE((test_encode_3<utf8, utf32>()));
     EXPECT_TRUE((test_encode_3<utf8, native_narrow>()));
     EXPECT_TRUE((test_encode_3<utf8, native_wide>()));
 
     EXPECT_TRUE((test_encode_3<utf16, utf8>()));
     EXPECT_TRUE((test_encode_3<utf16, utf16>()));
-    //EXPECT_TRUE((test_encode_3<utf16, utf32>()));
+    EXPECT_TRUE((test_encode_3<utf16, utf32>()));
     EXPECT_TRUE((test_encode_3<utf16, native_narrow>()));
     EXPECT_TRUE((test_encode_3<utf16, native_wide>()));
 
-    //EXPECT_TRUE((test_encode_3<utf32, utf8>()));
-    //EXPECT_TRUE((test_encode_3<utf32, utf16>()));
+    EXPECT_TRUE((test_encode_3<utf32, utf8>()));
+    EXPECT_TRUE((test_encode_3<utf32, utf16>()));
     EXPECT_TRUE((test_encode_3<utf32, utf32>()));
-    //EXPECT_TRUE((test_encode_3<utf32, native_narrow>()));
-    //EXPECT_TRUE((test_encode_3<utf32, native_wide>()));
+    EXPECT_TRUE((test_encode_3<utf32, native_narrow>()));
+    EXPECT_TRUE((test_encode_3<utf32, native_wide>()));
 
     EXPECT_TRUE((test_encode_3<native_narrow, utf8>()));
     EXPECT_TRUE((test_encode_3<native_narrow, utf16>()));
-    //EXPECT_TRUE((test_encode_3<native_narrow, utf32>()));
+    EXPECT_TRUE((test_encode_3<native_narrow, utf32>()));
     EXPECT_TRUE((test_encode_3<native_narrow, native_narrow>()));
     EXPECT_TRUE((test_encode_3<native_narrow, native_wide>()));
 
     EXPECT_TRUE((test_encode_3<native_wide, utf8>()));
     EXPECT_TRUE((test_encode_3<native_wide, utf16>()));
-    //EXPECT_TRUE((test_encode_3<native_wide, utf32>()));
+    EXPECT_TRUE((test_encode_3<native_wide, utf32>()));
     EXPECT_TRUE((test_encode_3<native_wide, native_narrow>()));
     EXPECT_TRUE((test_encode_3<native_wide, native_wide>()));
 }
