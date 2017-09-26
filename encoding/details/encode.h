@@ -173,9 +173,7 @@ namespace details {
     inline typename encode_result<std::decay_t<ResultToken>>::type
     encode(Source&& src, ResultToken&& token, const std::locale& loc)
     {
-        using Result = encode_result<std::decay_t<ResultToken>>;
-
-        Result result(std::forward<ResultToken>(token));
+        encode_result<std::decay_t<ResultToken>> result(std::forward<ResultToken>(token));
         return do_encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
     }
 
@@ -185,9 +183,7 @@ namespace details {
     inline typename encode_result<std::decay_t<ResultToken>>::type
     encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc)
     {
-        using Result = encode_result<std::decay_t<ResultToken>>;
-
-        Result result(std::forward<ResultToken>(token));
+        encode_result<std::decay_t<ResultToken>> result(std::forward<ResultToken>(token));
         return do_encode<SrcEnc, DstEnc>(first, last, result, loc);
     }
 
