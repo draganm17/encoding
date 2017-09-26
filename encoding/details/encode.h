@@ -11,10 +11,12 @@
 #else
 #include <encoding/details/platform.pos.h>
 #endif
+#include <encoding/traits.h>
 
 
 namespace denc {
 namespace details {
+
 
     //-------------------------------------------------------------------------------------------//
     //                                class encoding_traits_base                                 //
@@ -31,11 +33,11 @@ namespace details {
     public:
         template <typename InputIt, typename OutputIt>
         static OutputIt from_native(InputIt first, InputIt last,
-                                    OutputIt result, const std::locale& loc = std::locale());
+                                    OutputIt result, const std::locale& loc);
 
         template <typename InputIt, typename OutputIt>
         static OutputIt to_native(InputIt first, InputIt last,
-                                  OutputIt result, const std::locale& loc = std::locale());
+                                  OutputIt result, const std::locale& lo);
     };
 
 
@@ -104,11 +106,45 @@ namespace details {
     //                                   NON-MEMBER FUNCTIONS                                    //
     //-------------------------------------------------------------------------------------------//
 
-    template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
-    OutputIt do_encode(Source&& src, OutputIt result, const std::locale& loc);
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    typename encode_result<std::decay_t<ResultToken>>::type
+    encode(Source&& src, ResultToken&& token, const std::locale& loc);
 
-    template <typename SrcEnc, typename DstEnc, typename InputIt, typename OutputIt>
-    OutputIt do_encode(InputIt first, InputIt last, OutputIt result, const std::locale& loc);
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    typename encode_result<std::decay_t<ResultToken>>::type
+    encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    typename encode_result<ResultToken>::type 
+    do_encode(Source&& src, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>* = 0);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    typename encode_result<ResultToken>::type  
+    do_encode(Source&& src, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<!std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>* = 0);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    typename encode_result<ResultToken>::type
+    do_encode(InputIt first, InputIt last, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>* = 0);
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    typename encode_result<ResultToken>::type
+    do_encode(InputIt first, InputIt last, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<!std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>* = 0);
 
 
     //-------------------------------------------------------------------------------------------//
@@ -118,7 +154,7 @@ namespace details {
     template <typename Encoding, typename CharT>
     template <typename InputIt, typename OutputIt>
     inline OutputIt encoding_traits_base<Encoding, CharT>
-           ::from_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    ::from_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
     {
         return platform::from_native(encoding_type(), first, last, result, loc);
     }
@@ -126,13 +162,35 @@ namespace details {
     template <typename Encoding, typename CharT>
     template <typename InputIt, typename OutputIt>
     inline OutputIt encoding_traits_base<Encoding, CharT>
-           ::to_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    ::to_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
     {
         return platform::to_native(encoding_type(), first, last, result, loc);
     }
 
-    template <typename SrcEnc, typename DstEnc, typename Source, typename OutputIt>
-    inline OutputIt do_encode(Source&& src, OutputIt result, const std::locale& loc)
+    template <typename SrcEnc, typename DstEnc,
+              typename Source, typename ResultToken
+    >
+    inline typename encode_result<std::decay_t<ResultToken>>::type
+    encode(Source&& src, ResultToken&& token, const std::locale& loc)
+    {
+        encode_result<std::decay_t<ResultToken>> result(std::forward<ResultToken>(token));
+        return do_encode<SrcEnc, DstEnc>(std::forward<Source>(src), result, loc);
+    }
+
+    template <typename SrcEnc, typename DstEnc,
+              typename InputIt, typename ResultToken
+    >
+    inline typename encode_result<std::decay_t<ResultToken>>::type
+    encode(InputIt first, InputIt last, ResultToken&& token, const std::locale& loc)
+    {
+        encode_result<std::decay_t<ResultToken>> result(std::forward<ResultToken>(token));
+        return do_encode<SrcEnc, DstEnc>(first, last, result, loc);
+    }
+
+    template <typename SrcEnc, typename DstEnc, typename Source, typename ResultToken>
+    inline typename encode_result<ResultToken>::type
+    do_encode(Source&& src, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>*)
     {
         using SourceT = std::decay_t<Source>;
         if constexpr(is_range<SourceT>::value)
@@ -170,8 +228,22 @@ namespace details {
         }
     }
 
-    template <typename SrcEnc, typename DstEnc, typename InputIt, typename OutputIt>
-    inline OutputIt do_encode(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    template <typename SrcEnc, typename DstEnc, typename Source, typename ResultToken>
+    inline typename encode_result<ResultToken>::type
+    do_encode(Source&& src, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<!std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>*)
+    {
+        auto seq = result.get();
+        auto output = std::inserter(seq, seq.end());
+        encode_result<decltype(output)> result2(output);
+        do_encode<SrcEnc, DstEnc>(std::forward<Source>(src), result2, loc);
+        return seq;
+    }
+
+    template <typename SrcEnc, typename DstEnc, typename InputIt, typename ResultToken>
+    inline typename encode_result<ResultToken>::type
+    do_encode(InputIt first, InputIt last, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>*)
     {
         using SrcTraits = encoding_traits<SrcEnc>;
         using DstTraits = encoding_traits<DstEnc>;
@@ -181,27 +253,39 @@ namespace details {
         // The source and destination encodings are the same.
         // No conversion perfomed.
         {
-            return std::copy(first, last, result);
+            return std::copy(first, last, result.get());
         } else 
         if constexpr(std::is_same_v<DstEnc, platform::native_encoding_type>)
         // The destination encoding is the system native encoding.
         // One-step conversion performed.
         {
-            return SrcTraits::to_native(first, last, result, loc);
+            return SrcTraits::to_native(first, last, result.get(), loc);
         } else
         if constexpr(std::is_same_v<SrcEnc, platform::native_encoding_type>)
         // The source encoding is the system native encoding.
         // One-step conversion performed.
         {
-            return DstTraits::from_native(first, last, result, loc);
+            return DstTraits::from_native(first, last, result.get(), loc);
         } else
         // Neather the source or the destination encoding match the system native encoding.
         // Two-step conversion performed.
         {
             std::basic_string<typename NtTraits::char_type> tmp;
             SrcTraits::to_native(first, last, std::back_inserter(tmp), loc);
-            return DstTraits::from_native(tmp.data(), tmp.data() + tmp.size(), result, loc);
+            return DstTraits::from_native(tmp.data(), tmp.data() + tmp.size(), result.get(), loc);
         }
+    }
+
+    template <typename SrcEnc, typename DstEnc, typename InputIt, typename ResultToken>
+    inline typename encode_result<ResultToken>::type
+    do_encode(InputIt first, InputIt last, encode_result<ResultToken>& result, const std::locale& loc,
+              std::enable_if_t<!std::is_same_v<typename encode_result<ResultToken>::type, ResultToken>>*)
+    {
+        auto seq = result.get();
+        auto output = std::inserter(seq, seq.end());
+        encode_result<decltype(output)> result2(output);
+        do_encode<SrcEnc, DstEnc>(first, last, result2, loc);
+        return seq;
     }
 
 }} // namespace denc::details

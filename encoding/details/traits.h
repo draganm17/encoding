@@ -3,9 +3,21 @@
 #include <algorithm>
 #include <type_traits>
 
+#ifdef _WIN32
+#include <encoding/details/platform.win.h>
+#else
+#include <encoding/details/platform.pos.h>
+#endif
+
 
 namespace denc {
 namespace details {
+
+    template <typename T> struct default_encoding { };
+    template <> struct default_encoding<char>     { using type = platform::native_narrow; };
+    template <> struct default_encoding<wchar_t>  { using type = platform::native_wide; };
+    template <> struct default_encoding<char16_t> { using type = platform::utf16; };
+    template <> struct default_encoding<char32_t> { using type = platform::utf32; };
 
 inline namespace range_traits
 {
@@ -49,51 +61,29 @@ inline namespace range_traits
     struct is_contiguous_range : is_contiguous_range_impl<T> { };
 }
 
-    //-------------------------------------------------------------------------------------------//
-    //                                     class char_type                                       //
-    //-------------------------------------------------------------------------------------------//
-
     template <typename T, typename = void>
-    struct char_type_impl
+    struct char_type
     {
         using type = std::remove_cv_t<
                      typename std::iterator_traits<std::remove_cv_t<T>>::value_type>;
     };
 
     template <typename T>
-    struct char_type_impl<T, std::enable_if_t<is_range<T>::value>>
+    struct char_type<T, std::enable_if_t<is_range<T>::value>>
     {
         using type = std::remove_cv_t<
                      typename std::iterator_traits<iterator_t<T>>::value_type>;
     };
 
-    template <typename T>
-    struct char_type : char_type_impl<T> { };
-
-    template <typename T>
-    using char_type_t = typename char_type<T>::type;
-
-
-    //-------------------------------------------------------------------------------------------//
-    //                                   class encoding_type                                     //
-    //-------------------------------------------------------------------------------------------//
-
     template <typename T, typename DP, typename = void>
-    struct encoding_type_impl
+    struct encoding_type
     { };
 
     template <typename T, typename DP>
-    struct encoding_type_impl<T, DP, 
-                              std::void_t<typename DP::template encoding_type<char_type_t<T>>>>
+    struct encoding_type<T, DP, 
+                         std::void_t<typename DP::template encoding_type<typename char_type<T>::type>>>
     {
-        using type = typename DP::template encoding_type<char_type_t<T>>;
+        using type = typename DP::template encoding_type<typename char_type<T>::type>;
     };
-
-    template <typename T, typename DP>
-    struct encoding_type : encoding_type_impl<T, DP>
-    { };
-
-    template <typename T, typename DP>
-    using encoding_type_t = typename encoding_type<T, DP>::type;
 
 }} // namespace denc::details

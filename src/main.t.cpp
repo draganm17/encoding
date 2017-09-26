@@ -353,12 +353,18 @@ namespace {
     #else
         std::locale loc = std::locale("en_US.UTF-8");
     #endif
-        std::basic_string<typename encoding_traits<DstEncoding>::char_type> result;
+        using DstCharT = typename encoding_traits<DstEncoding>::char_type;
+
+        std::basic_string<DstCharT> result1, result2;
         auto it = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)..., 
-                                                   std::back_inserter(result), loc);
+                                                   std::back_inserter(result1), loc);
+
+        result2 = encode<SrcEncoding, DstEncoding>(std::forward<Args>(args)...,
+                                                   use_basic_string<DstCharT>(), loc);
 
         return //it     == result.end() &&
-               result == encoded_string(DstEncoding());
+               result1 == encoded_string(DstEncoding()) &&
+               result2 == encoded_string(DstEncoding());
     }
 
     template <typename SrcEncoding, typename DstEncoding>
