@@ -1,6 +1,8 @@
 /** @file */
 #pragma once
 
+#include <type_traits>
+
 #include <encoding/deduction_policy.h>
 #include <encoding/details/traits.h>
 
@@ -96,7 +98,7 @@ namespace denc {
         type get();
 
     private:
-        ResultToken m_token;
+        ResultToken m_value;
     };
 
 
@@ -107,13 +109,13 @@ namespace denc {
     template <typename ResultToken>
     template <typename T>
     inline encode_result<ResultToken>::encode_result(T&& token)
-    : m_token(std::forward<T>(token))
+    : m_value(std::forward<T>(token))
     { }
 
     template <typename ResultToken>
     inline typename encode_result<ResultToken>::type encode_result<ResultToken>::get()
     {
-        return std::move(m_token);
+        return std::move(m_value);
     }
 
 } // namespace denc
