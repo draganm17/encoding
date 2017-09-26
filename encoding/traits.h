@@ -106,12 +106,12 @@ namespace denc {
 
     template <typename ResultToken>
     template <typename T>
-    encode_result<ResultToken>::encode_result(T&& token)
+    inline encode_result<ResultToken>::encode_result(T&& token)
     : m_token(std::forward<T>(token))
     { }
 
     template <typename ResultToken>
-    typename encode_result<ResultToken>::type encode_result<ResultToken>::get()
+    inline typename encode_result<ResultToken>::type encode_result<ResultToken>::get()
     {
         return std::move(m_token);
     }

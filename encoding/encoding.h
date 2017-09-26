@@ -24,15 +24,15 @@ namespace denc {
     /*! `denc::utf32` is always a distinct type. */
     using utf32         = details::platform::utf32;
 
-    //! Defines the system narrow encoding type.
+    //! Defines system narrow encoding type.
     /*! `denc::native_wide` is allowed to be an alias to any other encoding type. */
     using native_narrow = details::platform::native_narrow;
 
-    //! Defines the system wide encoding type.
+    //! Defines system wide encoding type.
     /*! `denc::native_wide` is allowed to be an alias to any other encoding type. */
     using native_wide   = details::platform::native_wide;
 
-    //! Defines the platform-specific native encoding type.
+    //! Defines platform-specific native encoding type.
     /*! `denc::native_encoding_type` is always an alias to another encoding type. */
     using native_encoding_type = details::platform::native_encoding_type;
 
@@ -118,38 +118,32 @@ namespace denc {
                                     OutputIt result, const std::locale& loc = std::locale());
     };
 
-    // Converts 'SrcEnc'-encoded characters from the source range 'src' to the 'DstEnc'
-    // encoding, placing the results in the subsequent locations starting at 'result'.
+    /*! Converts `SrcEnc`-encoded characters from the source range `src` to the `DstEnc`
+    //  encoding, placing the results in the subsequent locations starting at `result`.
     //
-    // ---- Parameters ----
-    // src    - an iterator to a null-terminated character sequence, or an range of characters.
+    //  @tparam Source - should be eather an iterator type and meat the requirements of
+    //                   `InputIterator`, or an range type and meat the requirements of `InputRange`. \n
+    //                   In both cases `denc::char_type_t<std::decay_t<Source>>` must be implicitly
+    //                   convertible to `denc::encoding_traits<SrcEnc>::char_type`.
     //
-    // result - the beginning of the destination range.
+    //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
+    //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
     //
-    // loc    - TODO: ...
+    //  @param[in] src    - an iterator to a null-terminated character sequence, or an range of characters.
     //
+    //  @param[in] result - the beginning of the destination range.
     //
-    // ---- Type requirements ----
-    //  Source    - should be eather an iterator type and meat the requirements of
-    //              'InputIterator', or an range type and meat the requirements of 'InputRange'.
-    //              In both cases 'denc::char_type_t<std::decay_t<Source>>' must be implicitly
-    //              convertible to 'denc::encoding_traits<SrcEnc>::char_type'.
-    //
-    //  OutputIt  - must meet the requirements of 'OutputIterator'. The expression 
-    //              '*result = denc::encoding_traits<DstEnc>::char_type()' shall be valid.
+    //  @param[in] loc    - TODO: ...
     //
     //
-    // ---- Return value ----
-    // Output iterator to the element past the last element converted.
+    //  @return Output iterator to the element past the last element converted.
     //
-    //
-    // ---- Exceptions ----
-    // Throws 'std::range_error' on conversion failure.
-    //
+    //  @throw std::range_error on conversion failure.
     //
     // ---- Notes ----
     // TODO: ...
     //
+    */
     template <typename SrcEnc,
               typename DstEnc,
               typename Source, 
@@ -173,37 +167,31 @@ namespace denc {
     //OutputIt encode(deduce<DP>, Source&& src,
     //                OutputIt result, const std::locale& loc = std::locale());
 
-    // Converts 'SrcEnc'-encoded characters from the source range ['first', 'last') to
-    // the 'DstEnc' encoding, placing the results in the subsequent locations starting
-    // at 'result'.
+    /*! Converts `SrcEnc`-encoded characters from the source range [`first`, `last`) to
+    //  the `DstEnc` encoding, placing the results in the subsequent locations starting
+    //  at `result`.
     //
-    // ---- Parameters ----
-    // first, last - the range of characters to convert.
+    //  @tparam InputIt - must meet the requirements of `InputIterator`. `denc::char_type_t<InputIt>`
+    //                    must be implicitly convertible to `denc::encoding_traits<SrcEnc>::char_type`.
     //
-    // result      - the beginning of the destination range.
+    //  @tparam OutputIt - must meet the requirements of `OutputIterator`. The expression
+    //                     `*result = denc::encoding_traits<DstEnc>::char_type()` shall be valid.
     //
-    // loc         - TODO: ...
+    //  @param[in] first, last - the range of characters to convert.
     //
+    //  @param[in] result      - the beginning of the destination range.
     //
-    // ---- Type requirements ----
-    //  InputIt   - must meet the requirements of 'InputIterator'. 'denc::char_type_t<InputIt>'
-    //              must be implicitly convertible to 'denc::encoding_traits<SrcEnc>::char_type'.
+    //  @param[in] loc         - TODO: ...
     //
-    //  OutputIt  - must meet the requirements of 'OutputIterator'. The expression 
-    //              '*result = denc::encoding_traits<DstEnc>::char_type()' shall be valid.
+    //  @return Output iterator to the element past the last element converted.
     //
-    //
-    // ---- Return value ----
-    // Output iterator to the element past the last element converted.
-    //
-    //
-    // ---- Exceptions ----
-    // Throws 'std::range_error' on conversion failure.
+    //  @throw std::range_error on conversion failure.
     //
     //
     // ---- Notes ----
     // TODO: ...
     //
+    */
     template <typename SrcEnc,
               typename DstEnc,
               typename InputIt, 

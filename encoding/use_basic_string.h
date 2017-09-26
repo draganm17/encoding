@@ -15,7 +15,10 @@ namespace denc {
     //                                 class use_basic_string                                    //
     //-------------------------------------------------------------------------------------------//
 
-    //! TODO: ...
+    /*! The class template `use_basic_string` defines a set of types that, when passed as a result
+    //  token to `denc::encode`, cause the result of the encoding operation to be delivered via a
+    //  string. Specifically an instance of `std::basic_string<CharT, Traits, Allocator>`.
+    */
     template <typename CharT,
               typename Traits = std::char_traits<CharT>,
               typename Allocator = std::allocator<CharT>
@@ -30,14 +33,16 @@ namespace denc {
         using allocator_type = Allocator;
 
     public:
-        //! TODO: ...
+        //! Constructs a `use_basic_string` with a default-constructed allocator.
         constexpr use_basic_string() noexcept(noexcept(allocator_type()));
 
-        //! TODO: ...
-        explicit use_basic_string(const allocator_type& allocator) noexcept;
+        //! Constructs a `use_basic_string` with a copy of `a`.
+        /*! @post `get_allocator() == a`.
+        */
+        explicit use_basic_string(const allocator_type& a) noexcept;
 
     public:
-        //! TODO: ...
+        //! Returns the associated allocator object.
         allocator_type get_allocator() const noexcept;
 
     private:
@@ -46,30 +51,28 @@ namespace denc {
 
 
     //-------------------------------------------------------------------------------------------//
-    //             class encode_result<use_basic_string<CharT, Traits, Allocator>>               //
+    //                       class encode_result<use_basic_string<Ts...>>                        //
     //-------------------------------------------------------------------------------------------//
 
-    //! TODO: ...
-    template <typename CharT, typename Traits, typename Allocator>
-    class encode_result<use_basic_string<CharT, Traits, Allocator>>
+    //! Specialization of `encode_result` for `use_basic_string`.
+    template <typename... Ts>
+    class encode_result<use_basic_string<Ts...>>
     {
     public:
-        //! TODO: ...
-        using type = std::basic_string<CharT, Traits, Allocator>;
+        //! Result type.
+        using type = std::basic_string<Ts...>;
 
     public:
-        //! TODO: ...
-        explicit encode_result(use_basic_string<CharT, Traits, Allocator>& token)
-        : m_value(type(token.get_allocator()))
-        { }
+        //! Initializes `m_value` with `token.get_allocator()`.
+        explicit encode_result(use_basic_string<Ts...>& token);
 
         encode_result(const encode_result&) = delete;
 
         encode_result& operator=(const encode_result&) = delete;
 
     public:
-        //! TODO: ...
-        type get() { return std::move(m_value); }
+        //! Returns `std::move(m_value)`.
+        type get();
 
     private:
         type m_value;
@@ -81,20 +84,33 @@ namespace denc {
     //-------------------------------------------------------------------------------------------//
 
     template <typename CharT, typename Traits, typename Allocator>
-    constexpr use_basic_string<CharT, Traits, Allocator>::use_basic_string()
-                                                          noexcept(noexcept(allocator_type()))
+    inline constexpr use_basic_string<CharT, Traits, Allocator>
+    ::use_basic_string() noexcept(noexcept(allocator_type()))
     { }
 
     template <typename CharT, typename Traits, typename Allocator>
-    use_basic_string<CharT, Traits, Allocator>::use_basic_string(const allocator_type& allocator)
-                                                                                         noexcept
-    : m_allocator(allocator)
+    inline use_basic_string<CharT, Traits, Allocator>
+    ::use_basic_string(const allocator_type& a) noexcept
+    : m_allocator(a)
     { }
 
     template <typename CharT, typename Traits, typename Allocator>
-    Allocator use_basic_string<CharT, Traits, Allocator>::get_allocator() const noexcept
+    inline Allocator use_basic_string<CharT, Traits, Allocator>
+    ::get_allocator() const noexcept
     {
         return m_allocator;
+    }
+
+    template <typename... Ts>
+    inline encode_result<use_basic_string<Ts...>>::encode_result(use_basic_string<Ts...>& token)
+    : m_value(token.get_allocator())
+    { }
+
+    template <typename... Ts>
+    inline typename encode_result<use_basic_string<Ts...>>::type
+    encode_result<use_basic_string<Ts...>>::get()
+    {
+        return std::move(m_value);
     }
 
 } // namespace denc

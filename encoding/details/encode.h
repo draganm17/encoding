@@ -36,11 +36,11 @@ namespace details {
     public:
         template <typename InputIt, typename OutputIt>
         static OutputIt from_native(InputIt first, InputIt last,
-                                    OutputIt result, const std::locale& loc = std::locale());
+                                    OutputIt result, const std::locale& loc);
 
         template <typename InputIt, typename OutputIt>
         static OutputIt to_native(InputIt first, InputIt last,
-                                  OutputIt result, const std::locale& loc = std::locale());
+                                  OutputIt result, const std::locale& lo);
     };
 
 
@@ -151,7 +151,7 @@ namespace details {
     template <typename Encoding, typename CharT>
     template <typename InputIt, typename OutputIt>
     inline OutputIt encoding_traits_base<Encoding, CharT>
-           ::from_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    ::from_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
     {
         return platform::from_native(encoding_type(), first, last, result, loc);
     }
@@ -159,7 +159,7 @@ namespace details {
     template <typename Encoding, typename CharT>
     template <typename InputIt, typename OutputIt>
     inline OutputIt encoding_traits_base<Encoding, CharT>
-           ::to_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
+    ::to_native(InputIt first, InputIt last, OutputIt result, const std::locale& loc)
     {
         return platform::to_native(encoding_type(), first, last, result, loc);
     }
@@ -188,8 +188,6 @@ namespace details {
         using Token   = std::decay_t<ResultToken>;
         using Result  = typename encode_result<Token>::type;
         using ImplTag = std::conditional_t<std::is_same_v<Result, Token>, it_tag, seq_tag>;
-
-        encode_result<Token> xx(std::forward<ResultToken>(token));
 
         return do_encode<SrcEnc, DstEnc>(
                first, last, ImplTag(),
