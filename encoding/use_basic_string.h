@@ -64,7 +64,7 @@ namespace denc {
 
     public:
         //! Initializes `m_value` with `token.get_allocator()`.
-        explicit encode_result(use_basic_string<Ts...>& token);
+        explicit encode_result(const use_basic_string<Ts...>& token);
 
         encode_result(const encode_result&) = delete;
 
@@ -102,7 +102,8 @@ namespace denc {
     }
 
     template <typename... Ts>
-    inline encode_result<use_basic_string<Ts...>>::encode_result(use_basic_string<Ts...>& token)
+    inline encode_result<use_basic_string<Ts...>>
+    ::encode_result(const use_basic_string<Ts...>& token)
     : m_value(token.get_allocator())
     { }
 
