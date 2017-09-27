@@ -119,6 +119,10 @@ namespace denc {
     };
 
 
+    //-------------------------------------------------------------------------------------------//
+    //                                       class codec                                         //
+    //-------------------------------------------------------------------------------------------//
+
     //! TODO: ...
     template <typename SrcEnc, typename DstEnc>
     class codec
@@ -264,7 +268,8 @@ namespace denc {
     template <typename SrcEnc, typename DstEnc>
     inline std::locale codec<SrcEnc, DstEnc>::imbue(const std::locale& loc)
     {
-        m_loc = std::locale(loc);
+        auto old_loc = m_loc;
+        return (m_loc = loc), old_loc;
     }
 
 } // namespace denc

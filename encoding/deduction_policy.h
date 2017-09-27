@@ -32,15 +32,4 @@ namespace denc {
         using encoding_type = typename details::default_encoding<CharT>::type;
     };
 
-
-    //-------------------------------------------------------------------------------------------//
-    //                                       class deduce                                        //
-    //-------------------------------------------------------------------------------------------//
-
-    /*! An empty tag type used to specify the deduction policy that should be used by the deductive
-    //  overloads of `denc::encode`.
-    */
-    template <typename DP = default_deduction_policy>
-    struct deduce { };
-
 } // namespace denc

@@ -127,9 +127,6 @@ namespace {
     template <typename DP, typename CharT>
     struct can_deduce : can_deduce_impl<DP, CharT> { };
 
-    template <typename DP>
-    DP test_deduce_dp_type(deduce<DP>);
-
     template <typename CharT,
               typename It = typename std::basic_string<CharT>::iterator
     >
@@ -509,15 +506,6 @@ TEST(DENC, DefaultDeductionPoliCy)
     // is SFINAE-frendly
     struct empty { };
     EXPECT_FALSE((can_deduce<DDP, empty>()));
-}
-
-TEST(DENC, Deduce)
-{
-    // is an empty class type and takes one template parameter
-    EXPECT_TRUE((std::is_empty_v<deduce<void>> && std::is_class_v<deduce<void>>));
-
-    // the template parameter default value is 'default_deduction_policy'
-    EXPECT_TRUE((std::is_same_v<decltype(test_deduce_dp_type(deduce<>())), default_deduction_policy>));
 }
 
 TEST(DENC, CharType)
