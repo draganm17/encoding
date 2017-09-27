@@ -4,6 +4,7 @@
 #include <iterator>
 #include <locale>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 
 
