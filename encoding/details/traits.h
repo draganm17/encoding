@@ -4,9 +4,9 @@
 #include <type_traits>
 
 #ifdef _WIN32
-#include <encoding/details/platform.win.h>
+#include <encoding/details/encoding.win.h>
 #else
-#include <encoding/details/platform.pos.h>
+#include <encoding/details/encoding.pos.h>
 #endif
 
 

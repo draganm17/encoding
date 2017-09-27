@@ -34,7 +34,7 @@ namespace denc {
 
     public:
         //! Constructs a `use_basic_string` with a default-constructed allocator.
-        constexpr use_basic_string() noexcept(noexcept(allocator_type()));
+        constexpr use_basic_string() = default;
 
         //! Constructs a `use_basic_string` with a copy of `a`.
         /*! @post `get_allocator() == a`.
@@ -82,11 +82,6 @@ namespace denc {
     //-------------------------------------------------------------------------------------------//
     //                                    INLINE DEFINITIONS                                     //
     //-------------------------------------------------------------------------------------------//
-
-    template <typename CharT, typename Traits, typename Allocator>
-    inline constexpr use_basic_string<CharT, Traits, Allocator>
-    ::use_basic_string() noexcept(noexcept(allocator_type()))
-    { }
 
     template <typename CharT, typename Traits, typename Allocator>
     inline use_basic_string<CharT, Traits, Allocator>

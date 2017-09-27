@@ -4,9 +4,7 @@
 #include <locale>
 #include <type_traits>
 
-#include <encoding/deduction_policy.h>
-#include <encoding/details/encode.h>
-#include <encoding/details/traits.h>
+#include <encoding/details/encoding.h>
 #include <encoding/traits.h>
 
 
@@ -133,7 +131,11 @@ namespace denc {
         using destination_encoding_type = DstEnc;
 
     public:
-        explicit codec(const std::locale& loc = std::locale());
+        //! Constructs a `codec` with a default-constructed locale.
+        codec() = default;
+
+        //! Constructs a `codec` with a copy of `loc`.
+        explicit codec(const std::locale& loc);
 
         codec(const codec&) = delete;
 
@@ -170,6 +172,7 @@ namespace denc {
         // TODO: ...
         //
         */
+        // TODO: describe ResultToken
         template <typename Source, typename ResultToken>
         auto operator()(Source&& src, ResultToken&& token)
         -> typename encode_result<std::decay_t<ResultToken>>::type;
@@ -199,6 +202,7 @@ namespace denc {
         // TODO: ...
         //
         */
+        // TODO: describe ResultToken
         template <typename InputIt, typename ResultToken>
         auto operator()(InputIt first, InputIt last, ResultToken&& token)
         -> typename encode_result<std::decay_t<ResultToken>>::type;
