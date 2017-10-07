@@ -41,7 +41,8 @@ inline namespace range_traits
     : std::true_type { };
 
     template <typename T>
-    struct is_range : is_range_impl<T> { };
+    struct is_range : std::conditional_t<!std::is_reference_v<T>, is_range_impl<T>, std::false_type>
+    { };
 
 
     //-------------------------------------------------------------------------------------------//

@@ -16,8 +16,9 @@ namespace denc {
     //-------------------------------------------------------------------------------------------//
 
     /*! The class template `use_basic_string` defines a set of types that, when passed as a result
-    //  token to `denc::encode`, cause the result of the encoding operation to be delivered via a
-    //  string. Specifically an instance of `std::basic_string<CharT, Traits, Allocator>`.
+    //  token to an `denc::codec` encoding function, cause the result of the encoding operation to
+    //  be delivered via a string. 
+    //  Specifically an instance of `std::basic_string<CharT, Traits, Allocator>`.
     */
     template <typename CharT,
               typename Traits = std::char_traits<CharT>,

@@ -609,6 +609,10 @@ TEST(DENC, Encode_3)
 
 int main(int argc, char** argv)
 {
+    codec<native_narrow, native_wide> cd(std::locale(""));
+    auto str = cd("ТЕСТ", use_basic_string<wchar_t>());
+
+
     ::testing::InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
 }
